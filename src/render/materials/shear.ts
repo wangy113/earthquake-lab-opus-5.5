@@ -9,13 +9,14 @@ import { positionLocal, uniform, mix, clamp } from 'three/tsl';
  *
  * The mesh must be built in story-local coordinates: y = 0 at the story's floor, no rotation.
  */
+const vec3Uniform = () => uniform(new THREE.Vector3());
 export interface StoryUniforms {
-  bottom: THREE.UniformNode<THREE.Vector3>;
-  top: THREE.UniformNode<THREE.Vector3>;
+  bottom: ReturnType<typeof vec3Uniform>;
+  top: ReturnType<typeof vec3Uniform>;
 }
 
 export function storyUniforms(): StoryUniforms {
-  return { bottom: uniform(new THREE.Vector3()), top: uniform(new THREE.Vector3()) };
+  return { bottom: vec3Uniform(), top: vec3Uniform() };
 }
 
 const COPY_KEYS = [

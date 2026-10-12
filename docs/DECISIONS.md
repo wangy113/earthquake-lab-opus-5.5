@@ -70,3 +70,46 @@ The plan's choice stands: B is the default, because the drone and rooftop camera
 ## 8. Assets stay out of git for now
 
 The plan says to vendor the Poly Haven assets. For now `public/assets/polyhaven/` is gitignored and rebuilt with `npm run assets`. The fetch is pinned by asset ID and verified against the API's md5 checksums. This keeps the repo small while the asset list keeps changing. Phase 7 decides whether the optimized assets get committed or are fetched in the deploy workflow.
+
+# Phase 1 notes (vertical slice)
+
+Screenshots are in `docs/phase1/`. `npm test` and `npm run e2e` cover the slice.
+
+## What was built
+
+- **Simulation core (`src/sim/`):**
+  - A synthetic quake, ported from the prototype.
+  - A shear-building model with damage and P-Delta, at 960 Hz.
+  - A Rapier scenario at 120 Hz. The ground and the floor slabs are driven bodies, so furniture slides on them.
+  - When the shop story fails, floor 1 becomes dynamic and takes over the floors above as one falling block. The shop story's columns, walls and shutters become debris.
+- **Visuals (`src/world/softStoryVisual.ts`):**
+  - Upper stories are kit facades merged per material: 5 draw calls per story instead of about 160.
+  - A shader blends each wall between the floor below and the floor above (the "story skinning" from the plan).
+- **Page:** controls, instruments, dust and procedural sound (ported), three camera views, and the `#test=1&run` deep link.
+
+## Measured behavior (Node, deterministic)
+
+- First period 0.55 s, as targeted.
+- The shop story starts cracking at about 3 s and fails at 6.0 s.
+- The upper block falls, crushes the debris, and settles 2.3 m lower, tilted about 14 degrees.
+- Two runs give identical results.
+- 20 s at rest with no quake: nothing moves.
+- The browser run matches to within 2 cm (2.33 m against 2.35 m). The page lets furniture settle with a slightly different number of steps before the quake, so the starting state is not bit-identical. Tests compare within a run environment, not across them.
+
+## Choices made on the way
+
+- **Crushed pieces pass through the block for 0.5 s.** Without this, the shop walls and 40 kg shelves held up a 160 t block, because Rapier's contacts treat them as solid. For 0.5 s they ignore the falling block while they topple outward, then they collide normally and the block lands on the debris pile. The same applies to the shop contents.
+- **Block mass is reduced.** Real floors here weigh about 110 t each. The block uses 40 t per floor (30 t slab plus 10 t walls), because Rapier stays stable with smaller mass ratios against 1 to 2 t debris. The structure model still uses the real 110 t.
+- **Only story 1 can fail in Phase 1.** Pancake and multi-story failure come in Phase 4.
+- **Prop sizes come from Poly Haven's dimensions, and models are scaled to fit them.** `steel_frame_shelves_01` loads 10 times too large.
+
+## Bugs found and fixed
+
+- In the frame where the collapse happens, the sync looked up floor bodies that had just been merged into the block, which crashed. It is now guarded.
+- The block's visual frame was taken from the physics body after it had already moved, which left the upper walls floating. It is now taken from the drawn floor-1 slab before the step, and events are handled before sync.
+
+## Open for Phase 2
+
+- **Side walls when they topple:** they show their plain plaster backing, with no breakage detail.
+- **Modular props:** `modular_street_seating` holds several bench variants side by side. Pick a single piece.
+- **No frame rate yet:** fps is still unmeasured on real hardware.

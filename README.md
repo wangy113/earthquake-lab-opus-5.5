@@ -15,6 +15,8 @@ npm run assets      # download the pinned Poly Haven assets (about 64 MB) into p
 npm run dev         # open the URL it prints
 ```
 
+Phase 1 is a vertical slice: one soft-story building, one quake, one collapse. Press **Start quake**, or open `/#test=1&run`.
+
 Page options: `?sky=a` (urban HDRI backdrop) or `?sky=b` (pure sky, the default), `?post=0`, `?gl=1` (force WebGL2), `?csm=0`, `?stories=N`.
 
 ## Checks
@@ -22,7 +24,7 @@ Page options: `?sky=a` (urban HDRI backdrop) or `?sky=b` (pure sky, the default)
 ```
 npm test               # Vitest: physics math, runs in Node
 npm run typecheck
-npm run e2e            # Playwright: loads the page headless, saves screenshots to test-results/
+npm run e2e            # Playwright: runs the quake in a headless browser, saves screenshots to test-results/
 npm run bench:physics  # Rapier benchmark (Phase 0 spike)
 npm run kit            # rebuild the facade kit catalog in src/world/kits/
 ```

@@ -4,18 +4,84 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Quake Street</title>
-<meta name="description" content="Phase 0 spike: a Poly Haven facade kit on a street corner, Three.js WebGPU renderer." />
+<meta name="description" content="An earthquake hits a city street. Three.js, Rapier physics and Poly Haven assets." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0e11; color: #eef2f5; font-family: system-ui, sans-serif; }
+  :root { --panel: rgba(13,17,21,.8); --line: rgba(255,255,255,.14); --ink: #eef2f5; --muted: #a3b2be; --amber: #ffb020; --red: #ff4d3d; --green: #36d47c; --focus: #8fd0ff; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0e11; color: var(--ink); font-family: Barlow, system-ui, sans-serif; }
   canvas { display: block; touch-action: none; }
-  #status { position: fixed; left: 12px; bottom: 12px; padding: 6px 12px; border-radius: 8px; background: rgba(0,0,0,.6); font: 14px ui-monospace, monospace; }
-  #credit { position: fixed; right: 12px; bottom: 12px; padding: 6px 12px; border-radius: 8px; background: rgba(0,0,0,.6); font-size: 13px; }
-  #credit a { color: #8fd0ff; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 12px 32px rgba(0,0,0,.35); }
+  .btn { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.22); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: 15px; }
+  .btn:hover { background: rgba(255,255,255,.16); }
+  .btn[aria-pressed="true"] { background: #4cc9f0; color: #06131a; border-color: #4cc9f0; }
+  #title { position: fixed; left: 16px; top: 12px; padding: 8px 14px; }
+  #title b { font-size: 21px; display: block; line-height: 1.1; }
+  #title small { color: var(--muted); font-size: 13px; }
+  #console { position: fixed; left: 16px; top: 82px; width: 280px; padding: 14px; }
+  .k { margin: 0 0 10px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
+  #startBtn { width: 100%; padding: 14px; border-radius: 12px; border: 0; cursor: pointer; font-size: 20px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #1b1203;
+    background: repeating-linear-gradient(-45deg, #ffb020 0 14px, #ffc24d 14px 28px); margin-bottom: 10px; }
+  #startBtn:disabled { background: #39424a; color: var(--muted); cursor: default; }
+  .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+  .row .btn { padding: 8px 4px; font-size: 14px; }
+  .lbl { font-size: 14px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; background: rgba(0,0,0,.3); padding: 4px; border-radius: 10px; }
+  .seg button { background: transparent; border: 0; border-radius: 7px; padding: 7px 4px; font-weight: 600; font-size: 14px; cursor: pointer; color: var(--muted); }
+  .seg button[aria-pressed="true"] { background: rgba(255,255,255,.92); color: #0d1216; }
+  #readouts { position: fixed; right: 16px; top: 12px; width: 290px; padding: 14px; }
+  .ro { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  .ro span { color: var(--muted); font-size: 14px; font-weight: 600; }
+  .ro b { font-family: "JetBrains Mono", monospace; font-size: 20px; }
+  #note { font-size: 14px; color: var(--amber); min-height: 20px; margin: 8px 0 4px; }
+  #stories { display: grid; gap: 5px; margin-top: 6px; }
+  .story { display: grid; grid-template-columns: 1fr auto 52px; gap: 8px; align-items: center; font-size: 14px; }
+  .pill { border-radius: 999px; padding: 2px 9px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .pill.ok { background: rgba(54,212,124,.18); color: var(--green); }
+  .pill.crack { background: rgba(255,176,32,.2); color: var(--amber); }
+  .pill.fail { background: rgba(255,77,61,.25); color: #ff8a7d; }
+  .dr { font-family: "JetBrains Mono", monospace; color: var(--muted); font-size: 13px; text-align: right; }
+  #status { position: fixed; left: 16px; bottom: 12px; padding: 5px 10px; border-radius: 8px; background: rgba(0,0,0,.55); font: 13px "JetBrains Mono", monospace; color: var(--muted); }
+  #credit { position: fixed; right: 16px; bottom: 12px; padding: 5px 10px; border-radius: 8px; background: rgba(0,0,0,.55); font-size: 13px; color: var(--muted); }
+  #credit a { color: var(--focus); }
+  #loader { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #1a222a, #07090b); z-index: 20; text-align: center; }
+  #loader b { font-size: 30px; letter-spacing: .06em; display: block; margin-bottom: 12px; }
+  #loader small { color: var(--muted); font-size: 15px; }
 </style>
 </head>
 <body>
-<div id="status" role="status" aria-live="polite">Starting</div>
+<header id="title" class="card"><b>Quake Street</b><small>Phase 1. One building, one quake.</small></header>
+
+<section id="console" class="card" aria-label="Controls">
+  <h2 class="k">Controls</h2>
+  <button id="startBtn">Start quake</button>
+  <div class="row">
+    <button id="resetBtn" class="btn">Reset</button>
+    <button id="slowBtn" class="btn" aria-pressed="false">Slow-mo</button>
+    <button id="soundBtn" class="btn" aria-pressed="true">Sound on</button>
+  </div>
+  <div class="lbl">Camera</div>
+  <div class="seg" id="segCam" role="group" aria-label="Camera">
+    <button data-v="plaza" aria-pressed="true">Plaza</button><button data-v="corner" aria-pressed="false">Corner</button><button data-v="above" aria-pressed="false">Above</button>
+  </div>
+</section>
+
+<section id="readouts" class="card" aria-label="Instruments">
+  <h2 class="k">Instruments</h2>
+  <div class="ro"><span>Time into quake</span><b id="roTime">waiting</b></div>
+  <div class="ro"><span>Ground shaking</span><b id="roG">0.00 g</b></div>
+  <div class="ro"><span>Natural period (model)</span><b id="roT">0.00 s</b></div>
+  <div id="note" aria-live="polite"></div>
+  <div id="stories"></div>
+</section>
+
+<div id="status">Starting</div>
 <div id="credit">Assets: <a href="https://polyhaven.com" target="_blank" rel="noopener">Poly Haven</a> (CC0)</div>
+<div id="loader" role="status" aria-live="polite"><div><b>QUAKE STREET</b><small id="loadMsg">Starting</small></div></div>
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
