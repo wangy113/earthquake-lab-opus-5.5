@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Shake Table Lab</title>
+<meta name="description" content="Build, shake, break and replay a three-story building on a photoreal earthquake shake table. Three.js, Poly Haven and Rapier physics." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --panel: rgba(13,17,21,.82); --panel-solid: #11161b; --line: rgba(255,255,255,.13); --line-2: rgba(255,255,255,.22);
+    --ink: #eef2f5; --muted: #a3b2be; --amber: #ffb020; --red: #ff4d3d; --green: #36d47c; --cyan: #4cc9f0; --focus: #8fd0ff;
+    --real: #2fb36d; --model: #2a8fc0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #0b0e11; color: var(--ink); font-family: Barlow, system-ui, sans-serif; overflow: hidden; }
+  #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  button, select, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 12px 32px rgba(0,0,0,.35); }
+  .btn { background: rgba(255,255,255,.07); border: 1px solid var(--line-2); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: 15px; }
+  .btn:hover { background: rgba(255,255,255,.14); }
+  .btn[aria-pressed="true"] { background: var(--cyan); color: #06131a; border-color: var(--cyan); }
+  .bar .btn:not(.primary):not([aria-pressed="true"]) { background: var(--panel); }
+  .btn.primary { background: var(--amber); color: #1b1203; border-color: var(--amber); }
+
+  .bar { position: fixed; left: 16px; right: 16px; top: 12px; display: flex; gap: 8px; align-items: center; z-index: 5; pointer-events: none; }
+  .bar > * { pointer-events: auto; }
+  .title { padding: 7px 14px; }
+  .title b { font-size: 21px; letter-spacing: .02em; display: block; line-height: 1.1; }
+  .title small { color: var(--muted); font-size: 13px; }
+  .spacer { flex: 1; }
+
+  #console { position: fixed; left: 16px; top: 78px; width: 300px; max-height: calc(100vh - 290px); overflow: auto; padding: 14px; z-index: 4; }
+  .k { margin: 0 0 10px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
+  .group { margin-bottom: 12px; }
+  .lbl { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .lbl output { color: var(--ink); font-family: "JetBrains Mono", monospace; font-size: 14px; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; background: rgba(0,0,0,.3); padding: 4px; border-radius: 10px; }
+  .seg button { background: transparent; border: 0; border-radius: 7px; padding: 7px 4px; font-weight: 600; font-size: 14px; cursor: pointer; color: var(--muted); }
+  .seg button:hover { color: var(--ink); background: rgba(255,255,255,.06); }
+  .seg button[aria-pressed="true"] { background: rgba(255,255,255,.92); color: #0d1216; }
+  input[type=range] { width: 100%; accent-color: var(--amber); }
+  input[type=range]:disabled { opacity: .35; }
+  .shake { width: 100%; margin: 4px 0 10px; padding: 14px; border-radius: 12px; border: 0; cursor: pointer; font-size: 20px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #1b1203;
+    background: repeating-linear-gradient(-45deg, #ffb020 0 14px, #ffc24d 14px 28px); box-shadow: 0 6px 18px rgba(255,176,32,.35); }
+  .shake.on { background: var(--red); color: #fff; box-shadow: 0 6px 18px rgba(255,77,61,.45); }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+  .row3 .btn { padding: 8px 4px; font-size: 14px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end; }
+  select { width: 100%; background: rgba(0,0,0,.35); border: 1px solid var(--line-2); border-radius: 10px; padding: 7px 8px; }
+  select option { background: var(--panel-solid); }
+
+  #readouts { position: fixed; right: 16px; top: 78px; width: 290px; padding: 14px; z-index: 4; }
+  .ro { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  .ro span { color: var(--muted); font-size: 14px; font-weight: 600; }
+  .ro b { font-family: "JetBrains Mono", monospace; font-size: 21px; }
+  .note { font-size: 14px; color: var(--amber); min-height: 20px; margin: 8px 0 4px; }
+  .stories { display: grid; gap: 5px; margin-top: 6px; }
+  .story { display: grid; grid-template-columns: 82px 1fr auto; gap: 8px; align-items: center; font-size: 14px; }
+  .story .pill { border-radius: 999px; padding: 2px 9px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; text-align: center; }
+  .pill.ok { background: rgba(54,212,124,.18); color: var(--green); }
+  .pill.crack { background: rgba(255,176,32,.2); color: var(--amber); }
+  .pill.fail { background: rgba(255,77,61,.25); color: #ff8a7d; }
+  .story .dr { font-family: "JetBrains Mono", monospace; color: var(--muted); font-size: 13px; }
+
+  #chartWrap { position: fixed; left: 16px; bottom: 16px; width: 300px; padding: 10px 12px 8px; z-index: 4; }
+  #chart { width: 100%; height: 150px; display: block; }
+  .legend { display: flex; gap: 14px; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+
+  select { font-size: 14px; }
+  #camtag { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 3; font-family: "JetBrains Mono", monospace; font-size: 15px; padding: 6px 14px; border-radius: 8px; background: rgba(0,0,0,.55); letter-spacing: .08em; }
+  #camtag .rec { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--red); margin-right: 8px; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .panel { position: fixed; right: 16px; bottom: 16px; width: min(420px, calc(100vw - 32px)); max-height: calc(100vh - 400px); overflow: auto; padding: 16px 18px; z-index: 6; }
+  .panel h2 { font-size: 23px; margin: 6px 0 8px; line-height: 1.15; }
+  .panel p, .modal p, .modal li { line-height: 1.5; font-size: 16px; margin: 0 0 10px; }
+  .notice { background: rgba(255,176,32,.12); border-left: 4px solid var(--amber); padding: 8px 10px; border-radius: 6px; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .tag { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #fff; border-radius: 999px; padding: 3px 9px; }
+  .tag.real { background: var(--real); } .tag.model { background: var(--model); }
+  .step { color: var(--muted); font-size: 13px; font-weight: 600; margin-left: auto; margin-right: 28px; }
+  #pTitle:focus { outline: none; }
+  .panel .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .close { position: absolute; right: 8px; top: 6px; background: none; border: 0; font-size: 26px; cursor: pointer; color: var(--muted); line-height: 1; padding: 4px 8px; }
+
+  #replaybar { position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; width: min(620px, calc(100vw - 680px)); min-width: 420px; z-index: 7; padding: 10px 14px; display: flex; gap: 10px; align-items: center; }
+  #replaybar b { color: var(--amber); letter-spacing: .1em; text-transform: uppercase; font-size: 14px; }
+  #replaybar input { flex: 1; }
+  #replaybar .seg { flex: 0 0 auto; }
+
+  .modal-back { position: fixed; inset: 0; background: rgba(4,6,8,.6); z-index: 10; display: grid; place-items: center; padding: 16px; }
+  .modal { background: var(--panel-solid); border: 1px solid var(--line-2); border-radius: 16px; max-width: 760px; width: 100%; max-height: calc(100vh - 32px); overflow: auto; padding: 24px 28px; position: relative; }
+  .modal h1 { font-size: 32px; margin: 0 0 6px; }
+  .modal h2 { font-size: 21px; margin: 22px 0 6px; }
+  .modal a { color: var(--cyan); }
+  .legendT { display: grid; gap: 8px; margin: 12px 0; }
+  #loader { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #1a222a, #07090b); z-index: 20; text-align: center; }
+  #loader b { font-size: 30px; letter-spacing: .06em; }
+  #loader .bar2 { width: 320px; height: 6px; background: rgba(255,255,255,.12); border-radius: 3px; margin: 16px auto 10px; overflow: hidden; }
+  #loader .bar2 i { display: block; height: 100%; width: 0; background: var(--amber); transition: width .3s; }
+  #loader small { color: var(--muted); font-size: 15px; }
+  #toast { position: fixed; left: 50%; top: 130px; transform: translateX(-50%); background: rgba(0,0,0,.7); padding: 8px 16px; border-radius: 999px; font-size: 15px; z-index: 8; pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="scene" aria-label="3D view of an earthquake shake table with a three-story building"></canvas>
+<div id="camtag" hidden></div>
+<div id="toast" hidden></div>
+
+<header class="bar">
+  <div class="title card"><b>Shake Table Lab</b><small>Build it. Shake it. Break it. Replay it.</small></div>
+  <div class="spacer"></div>
+  <button class="btn primary" id="guideBtn">Guide me</button>
+  <button class="btn" id="textBtn">Text version</button>
+  <button class="btn" id="aboutBtn">About</button>
+  <button class="btn" id="soundBtn" aria-pressed="true">Sound on</button>
+</header>
+
+<section id="console" class="card" aria-label="Control room">
+  <h2 class="k">Control room</h2>
+  <div class="group"><div class="lbl">Building</div>
+    <div class="seg" id="segType" role="group" aria-label="Building type">
+      <button data-v="bare" aria-pressed="true">Bare frame</button><button data-v="braced" aria-pressed="false">Braced</button><button data-v="isolated" aria-pressed="false">Isolated</button>
+    </div></div>
+  <div class="group"><div class="lbl">Shaking</div>
+    <div class="seg" id="segMode" role="group" aria-label="Shaking type">
+      <button data-v="steady" aria-pressed="true">Steady</button><button data-v="sweep" aria-pressed="false">Sweep</button><button data-v="quake" aria-pressed="false">Quake</button>
+    </div></div>
+  <div class="group"><label class="lbl" for="freq">Frequency <output id="freqOut">1.20 Hz</output></label>
+    <input type="range" id="freq" min="0.5" max="4" step="0.05" value="1.2" /></div>
+  <div class="group"><label class="lbl" for="strength">Strength <output id="gOut">0.25 g</output></label>
+    <input type="range" id="strength" min="0.05" max="0.6" step="0.01" value="0.25" /></div>
+  <button id="shakeBtn" class="shake">Shake</button>
+  <div class="row3">
+    <button id="resetBtn" class="btn">Reset</button>
+    <button id="slowBtn" class="btn" aria-pressed="false">Slow-mo</button>
+    <button id="replayBtn" class="btn">Replay</button>
+  </div>
+  <div class="group"><div class="lbl">Camera</div>
+    <div class="seg" id="segCam" role="group" aria-label="Camera">
+      <button data-v="orbit" aria-pressed="true">Orbit</button><button data-v="side" aria-pressed="false">High speed</button><button data-v="ride" aria-pressed="false">Ride floor 2</button>
+    </div></div>
+  <div class="two">
+    <button id="stressBtn" class="btn" aria-pressed="false">Stress colors</button>
+    <label><span class="lbl">Lab hall</span>
+      <select id="hall"><option value="aircraft">Test workshop</option><option value="hangar">Hangar</option><option value="foundry">Foundry hall</option></select></label>
+  </div>
+</section>
+
+<section id="readouts" class="card" aria-label="Instruments">
+  <h2 class="k">Instruments</h2>
+  <div class="ro"><span>Table frequency</span><b id="roF">0.00 Hz</b></div>
+  <div class="ro"><span>Table acceleration</span><b id="roA">0.00 g</b></div>
+  <div class="ro"><span>Roof swing</span><b id="roD">0 cm</b></div>
+  <div class="ro"><span>Natural beat (model)</span><b id="roN">1.20 Hz</b></div>
+  <div class="note" id="peakNote" aria-live="polite"></div>
+  <div class="stories" id="stories"></div>
+</section>
+
+<section id="chartWrap" class="card" aria-label="Live chart">
+  <div class="legend"><span><i style="background:var(--amber)"></i>Table accel (g)</span><span><i style="background:var(--cyan)"></i>Roof swing (cm)</span></div>
+  <canvas id="chart" aria-hidden="true"></canvas>
+</section>
+
+<div id="replaybar" class="card" hidden role="group" aria-label="Replay controls">
+  <b>Replay</b>
+  <button class="btn" id="rpPlay">Pause</button>
+  <input type="range" id="rpScrub" min="0" max="1" step="0.001" value="0" aria-label="Replay position" />
+  <div class="seg" id="segSpeed" role="group" aria-label="Replay speed">
+    <button data-v="0.25" aria-pressed="true">0.25x</button><button data-v="0.5" aria-pressed="false">0.5x</button><button data-v="1" aria-pressed="false">1x</button>
+  </div>
+  <button class="btn" id="rpExit">Live</button>
+</div>
+
+<aside class="panel card" id="panel" hidden aria-labelledby="pTitle">
+  <button class="close" id="pClose" aria-label="Close guide">&times;</button>
+  <div class="tags" id="pTags"></div>
+  <h2 id="pTitle" tabindex="-1"></h2>
+  <div id="pBody"></div>
+  <p class="notice" id="pNotice"></p>
+  <div class="row">
+    <button class="btn primary" id="pRun">Run this test</button>
+    <button class="btn" id="pPrev">Back</button>
+    <button class="btn" id="pNext">Next</button>
+  </div>
+</aside>
+
+<div class="modal-back" id="introM" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="introT">
+    <h1 id="introT">Shake Table Lab</h1>
+    <p>Engineers find out how a building fails by shaking it on a giant steel table before a real earthquake does. Here you run the table.</p>
+    <p>Pick a building, pick the shaking, then press <b>Shake</b>. Watch the instruments, ride along inside, and replay any collapse in slow motion.</p>
+    <div class="legendT">
+      <div><span class="tag real">Real world</span> facts about real labs and real buildings</div>
+      <div><span class="tag model">Model</span> what this simulation shows, with simplified physics</div>
+    </div>
+    <p>Everything is a button. Drag to look around in Orbit view and scroll to zoom.</p>
+    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primary" id="introGuide">Guide me through 6 tests</button>
+      <button class="btn" id="introFree">Explore on my own</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="textM" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="textT">
+    <button class="close" data-close aria-label="Close">&times;</button>
+    <h1 id="textT">Text version</h1>
+    <div id="textBody"></div>
+  </div>
+</div>
+
+<div class="modal-back" id="aboutM" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutT">
+    <button class="close" data-close aria-label="Close">&times;</button>
+    <h1 id="aboutT">About this lab</h1>
+    <h2>What is simplified</h2>
+    <p>The building is a shear-building model. Each floor is one heavy concrete slab of 4,000 kg. Each story acts like a spring with damping between two slabs. When a story bends past its drift limit, its columns break into real physics pieces and the floors above fall.</p>
+    <p>The numbers are tuned to make the ideas clear. The bare frame has a natural beat near 1.2 Hz, the braced frame near 2.9 Hz, and the isolated building near 0.4 Hz on its bearings. Real tests record hundreds of sensors and are designed by engineers. Nothing here is a design tool.</p>
+    <p>Quake mode uses a synthetic earthquake built from many waves. It is not a recording of a real earthquake.</p>
+    <h2>Sources for the Real world tags</h2>
+    <ul>
+      <li><a href="https://guinnessworldrecords.com/world-records/largest-3d-earthquake-shake-table" target="_blank" rel="noopener">Guinness World Records: Largest 3D earthquake shake table (E-Defense, 20 m by 15 m, 1,200 tonnes)</a></li>
+      <li><a href="https://www.earthmagazine.org/article/faking-quakes-full-scale-giant-shake-tables-simulate-earthquakes-make-buildings-safer" target="_blank" rel="noopener">EARTH Magazine: Faking quakes at full scale (2009 seven-story wood building test)</a></li>
+      <li>Taghavi, S. and Miranda, E. (2003). Response Assessment of Nonstructural Building Elements. PEER Report 2003/05.</li>
+      <li>San Francisco City Hall base isolation retrofit after the 1989 Loma Prieta earthquake. Needs a primary source before students see it.</li>
+    </ul>
+    <h2>Credits</h2>
+    <p>Lab halls, textures and props: Poly Haven (CC0). Halls: industrial_workshop_foundry, aircraft_workshop_01, hangar_interior. Textures: brushed_concrete, concrete_floor_02, metal_plate, blue_metal_plate, painted_concrete. Props: metal_office_desk, plastic_monobloc_chair_01, cardboard_box_01, wooden_crate_01, plastic_crate_01, tool_cart, portable_searchlight, korean_fire_extinguisher_01, industrial_storage_cart, metal_toolbox.</p>
+    <p>3D: Three.js r181. Physics: Rapier 0.19.3. No tracking, no cookies, no login.</p>
+  </div>
+</div>
+
+<div id="loader" role="status" aria-live="polite"><div><b>SHAKE TABLE LAB</b><div class="bar2"><i id="loadBar"></i></div><small id="loadMsg">Starting the physics engine</small></div></div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.181.2/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.181.2/examples/jsm/",
+  "rapier": "https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.19.3/rapier.mjs"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import RAPIER from 'rapier';
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const V3 = THREE.Vector3, Q = THREE.Quaternion;
+
+/* ---------------- loader UI ---------------- */
+let loadDone = 0, loadTotal = 1;
+function loadStep(msg) { loadDone++; $('#loadBar').style.width = Math.min(100, 100 * loadDone / loadTotal) + '%'; if (msg) $('#loadMsg').textContent = msg; }
+function toast(msg, ms = 2200) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, ms); }
+
+/* ---------------- renderer, scene, camera ---------------- */
+const canvas = $('#scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1e22);
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.05, 500);
+camera.position.set(12.5, 3.3, 14.5);
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(-0.3, 2.7, 0);
+controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.49; controls.minDistance = 3; controls.maxDistance = 40;
+
+const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -11, right: 11, top: 11, bottom: -11, near: 1, far: 80 });
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
+sun.position.set(8, 18, 6); sun.target.position.set(0, 2, 0);
+scene.add(sun, sun.target);
+const fill = new THREE.HemisphereLight(0xffffff, 0x444444, 0.25); scene.add(fill);
+
+/* ---------------- Poly Haven helpers ---------------- */
+const filesCache = {};
+async function phFiles(id) {
+  if (!filesCache[id]) filesCache[id] = fetch('https://api.polyhaven.com/files/' + id).then(r => { if (!r.ok) throw new Error(id); return r.json(); });
+  return filesCache[id];
+}
+const HALLS = {
+  aircraft: { id: 'aircraft_workshop_01', h: 3.2 },
+  hangar: { id: 'hangar_interior', h: 3.2 },
+  foundry: { id: 'industrial_workshop_foundry', h: 3.2 },
+};
+let sky = null, envTex = null;
+const hdrLoader = new HDRLoader().setDataType(THREE.FloatType);
+async function loadHall(key) {
+  const H = HALLS[key];
+  try {
+    const f = await phFiles(H.id);
+    const tex = await hdrLoader.loadAsync(f.hdri['2k'].hdr.url);
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    placeSun(tex); tintFloor(tex);
+    if (sky) { scene.remove(sky); sky.geometry.dispose(); sky.material.dispose(); }
+    if (envTex) envTex.dispose();
+    envTex = tex;
+    scene.environment = tex;
+    sky = new GroundedSkybox(tex, H.h, 90);
+    sky.position.y = H.h - 0.01;
+    scene.add(sky);
+  } catch (e) {
+    console.warn('HDRI failed, using fallback', e);
+    const pm = new THREE.PMREMGenerator(renderer);
+    scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+    toast('Could not load the Poly Haven hall. Using a plain room.');
+  }
+}
+/* find the brightest light in the upper half of the HDRI and put the shadow-casting light there */
+function placeSun(tex) {
+  const { data, width: W, height: H } = tex.image;
+  let best = -1, bx = 0, by = 0;
+  for (let y = 2; y < H * 0.42; y += 2) for (let x = 0; x < W; x += 2) {
+    const i = (y * W + x) * 4; const l = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+    if (l > best) { best = l; bx = x; by = y; }
+  }
+  const ang = (bx / W - 0.5) * Math.PI * 2;
+  let lat = (0.5 - by / H) * Math.PI;
+  lat = Math.max(lat, 0.75);
+  const d = new V3(Math.cos(ang) * Math.cos(lat), Math.sin(lat), Math.sin(ang) * Math.cos(lat));
+  sun.position.copy(d.multiplyScalar(30)).add(new V3(0, 0, 0));
+}
+
+/* tint the real floor patch toward the HDRI floor colour so the two blend */
+let floorPatch = null, floorTint = new THREE.Color(1, 1, 1);
+function tintFloor(tex) {
+  const { data, width: W, height: H } = tex.image; let r = 0, g = 0, b = 0, n = 0;
+  for (let y = Math.floor(H * 0.66); y < H * 0.86; y += 3) for (let x = 0; x < W; x += 3) { const i = (y * W + x) * 4; r += data[i]; g += data[i + 1]; b += data[i + 2]; n++; }
+  const mx = Math.max(r, g, b) || 1; floorTint.setRGB(r / mx, g / mx, b / mx).lerp(new THREE.Color(1, 1, 1), 0.35);
+  if (floorPatch) floorPatch.material.color.copy(floorTint);
+}
+const texLoader = new THREE.TextureLoader();
+async function phMat(id, opts = {}) {
+  try {
+    const f = await phFiles(id);
+    const u = k => f[k]['1k'].jpg.url;
+    const [map, nor, arm] = await Promise.all([texLoader.loadAsync(u('Diffuse')), texLoader.loadAsync(u('nor_gl')), texLoader.loadAsync(u('arm'))]);
+    map.colorSpace = THREE.SRGBColorSpace;
+    for (const t of [map, nor, arm]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; }
+    const { fallback, ...rest } = opts;
+    return new THREE.MeshStandardMaterial({ map, normalMap: nor, aoMap: arm, roughnessMap: arm, metalnessMap: arm, roughness: 1, metalness: 1, ...rest });
+  } catch (e) {
+    console.warn('texture failed', id, e);
+    return new THREE.MeshStandardMaterial({ color: opts.fallback ?? 0x8a8a8a, roughness: 0.8, metalness: 0.1 });
+  }
+}
+
+const models = {};
+async function phModel(id) {
+  try {
+    const f = await phFiles(id);
+    const g = f.gltf['1k'].gltf;
+    const inc = Object.entries(g.include).map(([k, v]) => [k, v.url]);
+    const mgr = new THREE.LoadingManager();
+    mgr.setURLModifier(url => { for (const [k, v] of inc) if (url.endsWith(k)) return v; return url; });
+    const gltf = await new GLTFLoader(mgr).loadAsync(g.url);
+    const root = gltf.scene;
+    root.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    models[id] = root;
+  } catch (e) { console.warn('model failed', id, e); }
+}
+
+/* box with UVs in world units so textures keep a real-world scale */
+function tiledBox(w, h, d, tile, off = [0, 0]) {
+  const g = new THREE.BoxGeometry(w, h, d);
+  const uv = g.attributes.uv; const dims = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]];
+  for (let f = 0; f < 6; f++) for (let i = 0; i < 4; i++) { const k = f * 4 + i; uv.setXY(k, uv.getX(k) * dims[f][0] / tile + off[0], uv.getY(k) * dims[f][1] / tile + off[1]); }
+  return g;
+}
+function mesh(geo, mat, cast = true, recv = true) { const m = new THREE.Mesh(geo, mat); m.castShadow = cast; m.receiveShadow = recv; return m; }
+
+/* ---------------- constants ---------------- */
+const DT = 1 / 240;
+const TOP = 0.85;              // table top height
+const TX = 3.5, TZ = 3.0;      // table half size
+const X0 = -1.0;               // tower centre on the table
+const HALF = 1.5, ST = 0.2, CH = 1.8, STORY = 2.0, ISO_H = 0.3, ISO_LIMIT = 0.45;
+const M = 4000, NS = 3, STROKE = 0.5;
+const TYPES = {
+  bare:     { k: 1.14e6, zeta: 0.02, yieldR: 0.02, ultR: 0.06, braced: false, iso: false },
+  braced:   { k: 6.84e6, zeta: 0.05, yieldR: 0.015, ultR: 0.045, braced: true,  iso: false },
+  isolated: { k: 6.84e6, zeta: 0.05, yieldR: 0.015, ultR: 0.045, braced: true,  iso: true, kIso: 1.01e5, zIso: 0.25 },
+};
+const KV = M * NS * Math.pow(2 * Math.PI * 10, 2), CV = 2 * 0.3 * Math.sqrt(KV * M);
+const IR = M * (3 * 3 + ST * ST) / 12, KR = IR * Math.pow(2 * Math.PI * 8, 2), CR = 2 * 0.3 * Math.sqrt(KR * IR);
+
+/* ---------------- state ---------------- */
+const state = {
+  type: 'bare', mode: 'steady', f: 1.2, g: 0.25, cam: 'orbit', stress: false, slow: false, sound: true,
+  replay: { on: false, t: 0, speed: 0.25, playing: true, t0: 0, t1: 1, vis: null },
+};
+const shake = { on: false, t: 0, env: 0, target: 0, phase: 0, x: 0, x1: 0, x2: 0, fNow: 0, accG: 0, quake: null, sweepF0: 0.6, sweepF1: 4.0, sweepT: 32, peakRoof: 0, peakF: 0, done: false };
+let world = null, simT = 0, acc = 0;
+let tableBody = null, tableMesh = null;
+const dyn = new THREE.Group(); scene.add(dyn);
+const stat = new THREE.Group(); scene.add(stat);
+let bodies = [];   // {mesh, body, mass, pv:V3, cool, kind}
+let springs = [];  // story springs
+let levels = [];   // slab bodies bottom to top (base slab first when isolated)
+let rods = [];
+let frames = [], events = [], chartData = [];
+let natBeat = 0;
+
+/* ---------------- materials ---------------- */
+const MAT = {};
+async function loadMaterials() {
+  const [slab, found, plate, steel, floor] = await Promise.all([
+    phMat('brushed_concrete', { fallback: 0x9a958c }),
+    phMat('concrete_floor_worn_001', { fallback: 0x8d8780 }),
+    phMat('metal_plate', { fallback: 0x6d7378 }),
+    phMat('blue_metal_plate', { fallback: 0x355a8a }),
+    phMat('concrete_floor_02', { fallback: 0x8d8780 }),
+  ]);
+  MAT.slab = slab; MAT.found = found; MAT.plate = plate; MAT.steel = steel;
+  MAT.floor = floor;
+  MAT.blocks = [0xd9d6d0, 0xc4c0b8, 0xb0aca4].map(c => { const m = slab.clone(); m.color = new THREE.Color(c); return m; });
+  plate.color = new THREE.Color(0xc4c8cc);
+  MAT.chrome = new THREE.MeshStandardMaterial({ color: 0xf2f4f7, metalness: 1, roughness: 0.07 });
+  MAT.hyd = new THREE.MeshStandardMaterial({ color: 0x23384d, metalness: 0.55, roughness: 0.32 });
+  MAT.rubber = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0, roughness: 0.75 });
+  MAT.dark = new THREE.MeshStandardMaterial({ color: 0x16191c, metalness: 0.2, roughness: 0.6 });
+  MAT.brace = new THREE.MeshStandardMaterial({ color: 0xc9cdd2, metalness: 0.9, roughness: 0.3 });
+  MAT.debris = slab;
+  const c = document.createElement('canvas'); c.width = 256; c.height = 32; const x = c.getContext('2d');
+  x.fillStyle = '#f2b51d'; x.fillRect(0, 0, 256, 32); x.fillStyle = '#151515';
+  for (let i = -2; i < 12; i++) { x.beginPath(); x.moveTo(i * 32, 32); x.lineTo(i * 32 + 16, 32); x.lineTo(i * 32 + 32, 0); x.lineTo(i * 32 + 16, 0); x.fill(); }
+  const ht = new THREE.CanvasTexture(c); ht.colorSpace = THREE.SRGBColorSpace; ht.wrapS = THREE.RepeatWrapping; ht.anisotropy = 8;
+  MAT.hazard = (len) => { const t = ht.clone(); t.repeat.set(len / 1.2, 1); t.needsUpdate = true; return new THREE.MeshStandardMaterial({ map: t, roughness: 0.55 }); };
+}
+
+/* ---------------- static lab: pit, reaction wall, actuators, props ---------------- */
+const RIM = [];  // boxes for colliders [cx,cy,cz,hx,hy,hz]
+function buildStatic() {
+  const add = (w, h, d, x, y, z, mat, tile = 3, coll = true) => {
+    const m = mesh(tiledBox(w, h, d, tile), mat); m.position.set(x, y, z); stat.add(m);
+    if (coll) RIM.push([x, y, z, w / 2, h / 2, d / 2]); return m;
+  };
+  // real PBR floor patch that fades into the HDRI floor and catches shadows
+  const R = 24, fg = new THREE.CircleGeometry(R, 96); fg.rotateX(-Math.PI / 2);
+  const uv = fg.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * R * 2 / 3, uv.getY(i) * R * 2 / 3);
+  const ac2 = document.createElement('canvas'); ac2.width = ac2.height = 256; const ax = ac2.getContext('2d');
+  const gr = ax.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, '#fff'); gr.addColorStop(0.45, '#fff'); gr.addColorStop(0.95, '#000');
+  ax.fillStyle = gr; ax.fillRect(0, 0, 256, 256);
+  const fm = MAT.floor.clone(); fm.alphaMap = new THREE.CanvasTexture(ac2); fm.transparent = true; fm.color.copy(floorTint);
+  fm.alphaMap.channel = 1; fg.setAttribute('uv1', new THREE.BufferAttribute(new Float32Array(uv.count * 2).map((_, k) => 0), 2));
+  { const u1 = fg.attributes.uv1, p = fg.attributes.position; for (let i = 0; i < p.count; i++) u1.setXY(i, p.getX(i) / (2 * R) + 0.5, p.getZ(i) / (2 * R) + 0.5); }
+  floorPatch = new THREE.Mesh(fg, fm); floorPatch.receiveShadow = true; floorPatch.position.y = 0.004; floorPatch.renderOrder = -1; stat.add(floorPatch);
+  // pit walls (top flush with table top) and the reaction wall on the -x side
+  add(10.6, TOP, 0.7, -0.5, TOP / 2, 3.6, MAT.found);
+  add(10.6, TOP, 0.7, -0.5, TOP / 2, -3.6, MAT.found);
+  add(0.75, TOP, 6.5, 4.4, TOP / 2, 0, MAT.found);
+  add(1.2, 1.55, 8.6, -5.2, 0.775, 0, MAT.found);
+  add(8.65, 0.04, 6.5, -0.29, 0.02, 0, MAT.dark, 2, false);
+  // hazard strips along the pit edge
+  const hz = (len, x, z, ry) => { const m = mesh(new THREE.BoxGeometry(len, 0.012, 0.14), MAT.hazard(len), false, true); m.position.set(x, TOP + 0.006, z); m.rotation.y = ry; stat.add(m); };
+  hz(8.4, -0.4, 3.32, 0); hz(8.4, -0.4, -3.32, 0); hz(6.5, 4.1, 0, Math.PI / 2);
+  // actuator cylinders bolted to the reaction wall
+  for (const z of [-1.7, 1.7]) {
+    const cyl = mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.5, 32), MAT.hyd); cyl.rotation.z = Math.PI / 2; cyl.position.set(-4.35, 0.55, z); stat.add(cyl);
+    const cap = mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.08, 32), MAT.chrome); cap.rotation.z = Math.PI / 2; cap.position.set(-4.58, 0.55, z); stat.add(cap);
+    const hose = mesh(new THREE.TorusGeometry(0.28, 0.035, 10, 24, Math.PI), MAT.rubber); hose.position.set(-4.35, 0.78, z); hose.rotation.y = Math.PI / 2; stat.add(hose);
+  }
+  // props from Poly Haven, placed around the hall (static)
+  const place = (id, x, z, ry, s = 1) => { const t = models[id]; if (!t) return; const o = t.clone(true); o.scale.setScalar(s); o.position.set(x, 0, z); o.rotation.y = ry; stat.add(o); };
+  place('tool_cart', 6.9, -4.6, -0.7);
+  place('metal_toolbox', 5.6, -6.4, 0.3);
+  place('industrial_storage_cart', -7.6, -4.2, 0.5);
+  place('korean_fire_extinguisher_01', -7.0, 4.6, 0.4);
+  place('portable_searchlight', 7.4, 4.4, -2.3);
+  const spot = new THREE.SpotLight(0xfff0dc, 45, 30, 0.38, 0.6, 1.4);
+  spot.position.set(7.2, 2.2, 4.2); spot.target.position.set(-0.8, 3.2, 0); scene.add(spot, spot.target);
+}
+
+/* ---------------- physics world (rebuilt on reset) ---------------- */
+const geo = {};
+function sharedGeo() {
+  geo.table = tiledBox(TX * 2, 0.3, TZ * 2, 1.5);
+  geo.slab = tiledBox(HALF * 2, ST, HALF * 2, 1.5);
+  geo.col = tiledBox(0.2, 1, 0.2, 0.6);
+  geo.brace = new THREE.CylinderGeometry(0.035, 0.035, 1, 10);
+  geo.bear = new THREE.CylinderGeometry(0.24, 0.24, 1, 28);
+  geo.rod = new THREE.CylinderGeometry(0.07, 0.07, 1, 24);
+  geo.clevis = new THREE.BoxGeometry(0.25, 0.35, 0.4);
+  geo.bolt = new THREE.CylinderGeometry(0.03, 0.03, 0.004, 10);
+}
+function register(meshObj, body, mass, kind) {
+  dyn.add(meshObj);
+  const o = { mesh: meshObj, body, mass, kind, pv: new V3(), cool: 0 };
+  bodies.push(o); return o;
+}
+function dynBody(x, y, z, q, sleep = false) {
+  const d = RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y, z).setCanSleep(sleep).setAngularDamping(0.15).setLinearDamping(0.02);
+  if (q) d.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
+  return world.createRigidBody(d);
+}
+
+function resetWorld() {
+  if (world) world.free();
+  world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+  world.timestep = DT;
+  world.integrationParameters.numSolverIterations = 8;
+  while (dyn.children.length) dyn.remove(dyn.children[0]);
+  for (const s of springs) if (s.mat) s.mat.dispose();
+  bodies = []; springs = []; levels = []; rods = []; frames = []; events = []; chartData = [];
+  simT = 0; acc = 0;
+  Object.assign(shake, { failNote: '', on: false, t: 0, env: 0, target: 0, phase: 0, x: 0, x1: 0, x2: 0, fNow: 0, accG: 0, peakRoof: 0, peakF: 0, done: false });
+  // ground and pit colliders
+  const g = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+  world.createCollider(RAPIER.ColliderDesc.cuboid(80, 0.5, 80).setTranslation(0, -0.5, 0).setFriction(0.7), g);
+  for (const [x, y, z, hx, hy, hz] of RIM) world.createCollider(RAPIER.ColliderDesc.cuboid(hx, hy, hz).setTranslation(x, y, z).setFriction(0.7), g);
+  // shake table (kinematic, moved by the actuators)
+  tableBody = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(0, TOP - 0.15, 0));
+  world.createCollider(RAPIER.ColliderDesc.cuboid(TX, 0.15, TZ).setFriction(0.8), tableBody);
+  tableMesh = mesh(geo.table, MAT.plate);
+  const bolts = new THREE.InstancedMesh(geo.bolt, MAT.dark, 13 * 11); let n = 0; const mtx = new THREE.Matrix4();
+  for (let i = 0; i < 13; i++) for (let j = 0; j < 11; j++) { mtx.makeTranslation(-3 + i * 0.5, 0.151, -2.5 + j * 0.5); bolts.setMatrixAt(n++, mtx); }
+  tableMesh.add(bolts);
+  register(tableMesh, tableBody, 1e9, 'table');
+  // actuator rods and clevises follow the table
+  for (const z of [-1.7, 1.7]) {
+    const r = mesh(geo.rod, MAT.chrome); r.rotation.z = Math.PI / 2; dyn.add(r);
+    const c = mesh(geo.clevis, MAT.hyd); dyn.add(c);
+    rods.push({ r, c, z });
+  }
+  buildTower(TYPES[state.type]);
+  buildWall();
+  buildFurniture();
+  computeNatBeat();
+  renderStories();
+  updateRods();
+  syncMeshes();
+}
+
+function makeSpring(a, b, rest, k, zeta, mass, opts = {}) {
+  const s = { a, b, aDyn: a !== tableBody, rest, k, c: 2 * zeta * Math.sqrt(k * mass), kv: KV, cv: CV, kr: KR, cr: CR,
+    damage: 0, failed: false, r: 0, d: 0, members: [], ...opts };
+  springs.push(s); return s;
+}
+function addMember(s, la, lb, kind) {
+  const m = kind === 'col' ? mesh(geo.col, s.mat) : kind === 'brace' ? mesh(geo.brace, MAT.brace) : mesh(geo.bear, MAT.rubber);
+  dyn.add(m); s.members.push({ la, lb, mesh: m, kind });
+}
+function addSlab(y) {
+  const b = dynBody(X0, y, 0, null, false);
+  world.createCollider(RAPIER.ColliderDesc.cuboid(HALF, ST / 2, HALF).setDensity(M / (HALF * 2 * ST * HALF * 2)).setFriction(0.7), b);
+  const m = mesh(geo.slab, MAT.slab);
+  register(m, b, M, 'slab'); levels.push(b); return b;
+}
+function buildTower(T) {
+  let lower = tableBody, lowerTopY = TOP, lowerHalf = 0.15, lx = X0;
+  if (T.iso) {
+    const yb = TOP + ISO_H + ST / 2;
+    const base = addSlab(yb);
+    const s = makeSpring(tableBody, base, { x: X0, y: 0.15 + ISO_H + ST / 2, z: 0 }, T.kIso, T.zIso, M * (NS + 1), { iso: true, label: 'Isolators', mat: null });
+    for (const cx of [-1.1, 1.1]) for (const cz of [-1.1, 1.1]) addMember(s, { x: X0 + cx, y: 0.15, z: cz }, { x: cx, y: -ST / 2, z: cz }, 'bear');
+    lower = base; lowerTopY = yb + ST / 2; lowerHalf = ST / 2; lx = 0;
+  }
+  const lowerCenterY0 = lower === tableBody ? TOP - 0.15 : lowerTopY - ST / 2;
+  let prevCenter = lowerCenterY0;
+  for (let i = 0; i < NS; i++) {
+    const lh = i === 0 ? lowerHalf : ST / 2;
+    const y = prevCenter + lh + CH + ST / 2;
+    const slab = addSlab(y);
+    const rest = { x: i === 0 ? lx : 0, y: y - prevCenter, z: 0 };
+    const mat = MAT.steel.clone();
+    const s = makeSpring(lower, slab, rest, T.k, T.zeta, M, { label: 'Story ' + (i + 1), yieldR: T.yieldR, ultR: T.ultR, mat });
+    const C = HALF - 0.15;
+    for (const cx of [-C, C]) for (const cz of [-C, C]) addMember(s, { x: rest.x + cx, y: lh, z: cz }, { x: cx, y: -ST / 2, z: cz }, 'col');
+    if (T.braced) for (const cz of [-C, C]) {
+      addMember(s, { x: rest.x - C, y: lh, z: cz }, { x: C, y: -ST / 2, z: cz }, 'brace');
+      addMember(s, { x: rest.x + C, y: lh, z: cz }, { x: -C, y: -ST / 2, z: cz }, 'brace');
+    }
+    lower = slab; prevCenter = y;
+  }
+}
+/* unreinforced block wall on the +x side of the table */
+function buildWall() {
+  const WX = 2.4, bl = 0.4, bh = 0.2, bt = 0.18;
+  for (let c = 0; c < 11; c++) {
+    const y = TOP + bh / 2 + c * bh + 0.001 * c;
+    const pieces = c % 2 === 0 ? [-1.0, -0.6, -0.2, 0.2, 0.6, 1.0].map(z => [z, bl]) : [[-1.1, 0.2], [-0.8, bl], [-0.4, bl], [0, bl], [0.4, bl], [0.8, bl], [1.1, 0.2]];
+    for (const [z, len] of pieces) {
+      const g2 = tiledBox(bt, bh - 0.014, len - 0.016, 0.7, [Math.random(), Math.random()]);
+      const m = mesh(g2, MAT.blocks[Math.abs(c * 7 + Math.round(z * 10)) % 3]);
+      const b = dynBody(WX, y, z, null, true);
+      world.createCollider(RAPIER.ColliderDesc.cuboid(bt / 2, bh / 2 - 0.001, (len - 0.016) / 2).setMass(26 * len).setFriction(0.7).setRestitution(0.02), b);
+      register(m, b, 26 * len, 'block');
+    }
+  }
+}
+const FALLBACK = { metal_office_desk: [1.2, 0.75, 0.6, 0x6f7a80], plastic_monobloc_chair_01: [0.5, 0.8, 0.5, 0xeeeeee], cardboard_box_01: [0.45, 0.3, 0.35, 0xb08850], wooden_crate_01: [0.6, 0.5, 0.6, 0x9a7448], plastic_crate_01: [0.55, 0.3, 0.38, 0x2a6fd0] };
+function addProp(id, x, yBottom, z, ry, mass) {
+  let obj;
+  if (models[id]) obj = models[id].clone(true);
+  else { const [w, h, d, c] = FALLBACK[id]; obj = mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: c, roughness: 0.7 })); }
+  const box = new THREE.Box3().setFromObject(obj); const size = box.getSize(new V3()); const ctr = box.getCenter(new V3());
+  obj.position.sub(ctr);
+  const g = new THREE.Group(); g.add(obj);
+  const q = new Q().setFromAxisAngle(new V3(0, 1, 0), ry);
+  const b = dynBody(x, yBottom + size.y / 2 + 0.005, z, q, false);
+  world.createCollider(RAPIER.ColliderDesc.cuboid(size.x / 2 * 0.97, size.y / 2, size.z / 2 * 0.97).setMass(mass).setFriction(0.45).setRestitution(0.05), b);
+  register(g, b, mass, 'prop');
+  return yBottom + size.y;
+}
+function buildFurniture() {
+  const iso = TYPES[state.type].iso;
+  const f1 = iso ? TOP + ISO_H + ST : TOP;              // ground floor top
+  const fl = n => f1 + n * STORY;                         // slab top of floor n+1
+  const X = X0;
+  const deskTop = addProp('metal_office_desk', X + 0.35, f1, -0.75, 0, 35);
+  addProp('cardboard_box_01', X + 0.55, deskTop, -0.75, 0.3, 6);
+  addProp('plastic_monobloc_chair_01', X + 0.3, f1, 0.15, Math.PI, 5);
+  const c1 = addProp('wooden_crate_01', X + 0.65, fl(1), -0.7, 0.2, 18);
+  addProp('wooden_crate_01', X + 0.62, c1, -0.72, -0.15, 18);
+  addProp('plastic_crate_01', X - 0.55, fl(1), -0.85, 0.1, 3);
+  addProp('plastic_monobloc_chair_01', X + 0.1, fl(1), 0.65, 2.4, 5);
+  let s = fl(2);
+  for (let i = 0; i < 3; i++) s = addProp('cardboard_box_01', X + 0.7 + (i % 2) * 0.03, s, 0.6, 0.2 * i, 6);
+  addProp('metal_office_desk', X - 0.2, fl(2), -0.75, 0, 35);
+  addProp('wooden_crate_01', 2.9, TOP, 2.2, 0.4, 18);
+  addProp('plastic_crate_01', 2.95, TOP, -2.2, -0.3, 3);
+}
+
+/* ---------------- natural frequency of the shear-building model ---------------- */
+function eigSym(A) {
+  const n = A.length; const a = A.map(r => r.slice());
+  for (let sweep = 0; sweep < 60; sweep++) {
+    let off = 0; for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) off += a[i][j] * a[i][j];
+    if (off < 1e-12) break;
+    for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++) {
+      if (Math.abs(a[p][q]) < 1e-14) continue;
+      const th = 0.5 * Math.atan2(2 * a[p][q], a[q][q] - a[p][p]); const c = Math.cos(th), s = Math.sin(th);
+      for (let k = 0; k < n; k++) { const akp = a[k][p], akq = a[k][q]; a[k][p] = c * akp - s * akq; a[k][q] = s * akp + c * akq; }
+      for (let k = 0; k < n; k++) { const apk = a[p][k], aqk = a[q][k]; a[p][k] = c * apk - s * aqk; a[q][k] = s * apk + c * aqk; }
+    }
+  }
+  return a.map((r, i) => r[i]).sort((x, y) => x - y);
+}
+function computeNatBeat() {
+  if (springs.some(s => s.failed)) { natBeat = 0; return; }
+  const ks = springs.map(s => s.k * (1 - 0.3 * s.damage)); const n = ks.length;
+  const A = Array.from({ length: n }, () => Array(n).fill(0));
+  for (let i = 0; i < n; i++) { A[i][i] = (ks[i] + (i + 1 < n ? ks[i + 1] : 0)) / M; if (i + 1 < n) A[i][i + 1] = A[i + 1][i] = -ks[i + 1] / M; }
+  natBeat = Math.sqrt(Math.max(0, eigSym(A)[0])) / (2 * Math.PI);
+}
+
+/* ---------------- shaking ---------------- */
+function rng(seed) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
+function makeQuake(peakG) {
+  const N = Math.round(24 / DT), xs = new Float32Array(N), r = rng(20261012);
+  const comps = [];
+  for (let i = 0; i < 20; i++) { const f = 0.7 + 2.5 * r(); const w = Math.exp(-Math.pow((f - 1.25) / 0.4, 2)) + 0.08; const om = 2 * Math.PI * f; comps.push([om, w * (0.6 + 0.4 * r()) / (om * om), r() * Math.PI * 2]); }
+  for (let n = 0; n < N; n++) {
+    const t = n * DT; let env = t < 2.5 ? Math.pow(t / 2.5, 2) : t < 11 ? 1 : Math.exp(-(t - 11) / 3.5);
+    if (t > 22) env *= (24 - t) / 2;
+    let x = 0; for (const [om, a, p] of comps) x += a * Math.sin(om * t + p);
+    xs[n] = x * env;
+  }
+  const off = xs[0]; for (let n = 0; n < N; n++) xs[n] -= off * Math.max(0, 1 - n * DT / 2.5);
+  let pk = 0; for (let n = 1; n < N - 1; n++) pk = Math.max(pk, Math.abs((xs[n + 1] - 2 * xs[n] + xs[n - 1]) / (DT * DT)));
+  let sc = peakG * 9.81 / pk; let mx = 0; for (const v of xs) mx = Math.max(mx, Math.abs(v));
+  if (mx * sc > STROKE) sc = STROKE / mx;
+  for (let n = 0; n < N; n++) xs[n] *= sc;
+  return xs;
+}
+function ampFor(f, g) { return Math.min(STROKE, g * 9.81 / Math.pow(2 * Math.PI * f, 2)); }
+function startShake() {
+  initAudio();
+  if (state.replay.on) exitReplay();
+  Object.assign(shake, { failNote: '', on: true, t: 0, env: state.mode === 'quake' ? 1 : 0, target: 1, phase: 0, peakRoof: 0, peakF: 0, done: false });
+  if (state.mode === 'quake') shake.quake = makeQuake(state.g);
+  $('#peakNote').textContent = '';
+  for (const o of bodies) if (o.kind !== 'table') o.body.wakeUp();
+  updateShakeBtn();
+}
+function stopShake() { shake.target = 0; shake.on = false; shake.done = true; updateShakeBtn(); }
+function updateTable() {
+  let x = 0;
+  if (state.mode === 'steady') {
+    shake.fNow = state.f; shake.phase += 2 * Math.PI * state.f * DT;
+    x = ampFor(state.f, state.g) * shake.env * Math.sin(shake.phase);
+  } else if (state.mode === 'sweep') {
+    const f = shake.sweepF0 + (shake.sweepF1 - shake.sweepF0) * Math.min(1, shake.t / shake.sweepT);
+    shake.fNow = f; shake.phase += 2 * Math.PI * f * DT;
+    x = ampFor(f, state.g) * shake.env * Math.sin(shake.phase);
+    if (shake.on && shake.t > shake.sweepT) stopShake();
+  } else if (shake.quake) {
+    const i = Math.min(shake.quake.length - 1, Math.floor(shake.t / DT));
+    x = shake.quake[i] * shake.env; shake.fNow = 0;
+    if (shake.on && i >= shake.quake.length - 1) stopShake();
+  }
+  if (shake.on || shake.env > 0) shake.t += DT;
+  const rate = DT / 1.5;
+  shake.env += Math.sign(shake.target - shake.env) * Math.min(rate, Math.abs(shake.target - shake.env));
+  if (!shake.on && shake.env <= 0 && state.mode !== 'quake') { x = 0; }
+  shake.x2 = shake.x1; shake.x1 = shake.x; shake.x = x;
+  const a = (shake.x - 2 * shake.x1 + shake.x2) / (DT * DT) / 9.81;
+  shake.accG = Math.abs(a);
+  tableBody.setNextKinematicTranslation({ x, y: TOP - 0.15, z: 0 });
+}
+
+/* ---------------- springs: the shear-building model ---------------- */
+const _qa = new Q(), _qb = new Q(), _qr = new Q(), _rv = new V3();
+function applySprings() {
+  for (const s of springs) {
+    if (s.failed) continue;
+    const A = s.a, B = s.b;
+    const pa = A.translation(), pb = B.translation(), ra = A.rotation(), rb = B.rotation();
+    _qa.set(ra.x, ra.y, ra.z, ra.w); _qb.set(rb.x, rb.y, rb.z, rb.w);
+    _rv.set(s.rest.x, s.rest.y, s.rest.z).applyQuaternion(_qa);
+    const dx = pb.x - pa.x - _rv.x, dy = pb.y - pa.y - _rv.y, dz = pb.z - pa.z - _rv.z;
+    const va = A.linvel(), vb = B.linvel();
+    const kf = s.k * (1 - 0.3 * s.damage);
+    let fx = -kf * dx - s.c * (vb.x - va.x), fz = -kf * dz - s.c * (vb.z - va.z);
+    const fy = -s.kv * dy - s.cv * (vb.y - va.y);
+    const d = Math.hypot(dx, dz); s.d = d; s.r = d / CH;
+    if (s.iso && d > ISO_LIMIT) { const e = d - ISO_LIMIT; fx -= s.k * 60 * e * dx / d; fz -= s.k * 60 * e * dz / d; }
+    B.applyImpulse({ x: fx * DT, y: fy * DT, z: fz * DT }, true);
+    if (s.aDyn) A.applyImpulse({ x: -fx * DT, y: -fy * DT, z: -fz * DT }, true);
+    _qr.copy(_qb).multiply(_qa.clone().invert()); if (_qr.w < 0) { _qr.x = -_qr.x; _qr.y = -_qr.y; _qr.z = -_qr.z; _qr.w = -_qr.w; }
+    const sn = Math.hypot(_qr.x, _qr.y, _qr.z); const ang = 2 * Math.atan2(sn, _qr.w); const f = sn > 1e-9 ? ang / sn : 2;
+    const wa = A.angvel(), wb = B.angvel();
+    const tx = -s.kr * _qr.x * f - s.cr * (wb.x - wa.x), ty = -s.kr * _qr.y * f - s.cr * (wb.y - wa.y), tz = -s.kr * _qr.z * f - s.cr * (wb.z - wa.z);
+    B.applyTorqueImpulse({ x: tx * DT, y: ty * DT, z: tz * DT }, true);
+    if (s.aDyn) A.applyTorqueImpulse({ x: -tx * DT, y: -ty * DT, z: -tz * DT }, true);
+    if (!s.iso) {
+      if (s.r > s.yieldR) {
+        if (s.damage === 0) fireEvent({ kind: 'crack', p: 0.5, pos: memberMid(s) });
+        s.damage = Math.min(1, s.damage + (s.r - s.yieldR) / (s.ultR - s.yieldR) * DT * 1.6);
+      }
+      if (s.r > s.ultR || s.damage >= 1) failStory(s, dx, dz);
+    }
+  }
+}
+function memberMid(s) { const p = s.b.translation(); return [p.x, p.y - 1, p.z]; }
+function failStory(s, dx, dz) {
+  s.failed = true; natBeat = 0;
+  if (!shake.failNote) shake.failNote = state.mode === 'quake' ? `${s.label} failed ${shake.t.toFixed(1)} s into the quake` : `${s.label} failed at ${shake.fNow.toFixed(2)} Hz`;
+  const va = s.a.linvel(), vb = s.b.linvel();
+  const vel = new V3((va.x + vb.x) / 2, (va.y + vb.y) / 2, (va.z + vb.z) / 2);
+  const dir = new V3(dx, 0, dz).normalize();
+  updateMembers();
+  for (const m of s.members) {
+    m.mesh.visible = false;
+    const L = m.mesh.scale.y; const axis = new V3(0, 1, 0).applyQuaternion(m.mesh.quaternion);
+    const parts = m.kind === 'col' ? 2 : 1, w = m.kind === 'col' ? 0.2 : 0.07;
+    for (let p = 0; p < parts; p++) {
+      const off = parts === 2 ? (p === 0 ? -L / 4 : L / 4) : 0, len = L / parts;
+      const c = m.mesh.position.clone().addScaledVector(axis, off);
+      const pm = mesh(m.kind === 'col' ? geo.col : geo.brace, m.mesh.material); pm.scale.set(1, len, 1);
+      const b = dynBody(c.x, c.y, c.z, m.mesh.quaternion, true);
+      world.createCollider(RAPIER.ColliderDesc.cuboid(w / 2, len / 2, w / 2).setMass(m.kind === 'col' ? 90 : 30).setFriction(0.6), b);
+      const kick = (p === 0 ? 1 : -1) * 1.8;
+      b.setLinvel({ x: vel.x + dir.x * kick + (Math.random() - 0.5), y: vel.y, z: vel.z + dir.z * kick + (Math.random() - 0.5) }, true);
+      b.setAngvel({ x: (Math.random() - 0.5) * 5, y: (Math.random() - 0.5) * 2, z: (Math.random() - 0.5) * 5 }, true);
+      register(pm, b, 90, 'piece');
+    }
+  }
+  // concrete chunks from the slab edges
+  const p = s.b.translation();
+  for (let i = 0; i < 14; i++) {
+    const sz = 0.08 + Math.random() * 0.16;
+    const cm = mesh(tiledBox(sz, sz * 0.7, sz * 1.2, 1.5, [Math.random(), Math.random()]), MAT.debris);
+    const ex = (Math.random() < 0.5 ? -1 : 1) * HALF * (0.6 + Math.random() * 0.45), ez = (Math.random() - 0.5) * HALF * 2;
+    const b = dynBody(p.x + ex, p.y - 0.2, p.z + ez, null, true);
+    world.createCollider(RAPIER.ColliderDesc.cuboid(sz / 2, sz * 0.35, sz * 0.6).setMass(4).setFriction(0.6).setRestitution(0.2), b);
+    b.setLinvel({ x: vel.x + (Math.random() - 0.5) * 3, y: Math.random() * 2, z: vel.z + (Math.random() - 0.5) * 3 }, true);
+    register(cm, b, 4, 'piece');
+  }
+  s.b.applyTorqueImpulse({ x: (Math.random() - 0.5) * 3000, y: 0, z: (Math.random() - 0.5) * 3000 }, true);
+  fireEvent({ kind: 'fail', p: 1, pos: [p.x, p.y - 0.8, p.z] });
+  renderStories();
+}
+
+/* ---------------- syncing meshes ---------------- */
+const _a = new V3(), _b = new V3(), _d = new V3(), _q = new Q(), UP = new V3(0, 1, 0), _q1 = new Q(), _q2 = new Q();
+function updateMembers() {
+  for (const s of springs) {
+    if (s.failed) continue;
+    const pa = s.a.translation(), pb = s.b.translation(), ra = s.a.rotation(), rb = s.b.rotation();
+    _q1.set(ra.x, ra.y, ra.z, ra.w); _q2.set(rb.x, rb.y, rb.z, rb.w);
+    for (const m of s.members) {
+      _a.set(m.la.x, m.la.y, m.la.z).applyQuaternion(_q1).add(pa);
+      _b.set(m.lb.x, m.lb.y, m.lb.z).applyQuaternion(_q2).add(pb);
+      _d.subVectors(_b, _a); const L = _d.length();
+      m.mesh.position.addVectors(_a, _b).multiplyScalar(0.5);
+      m.mesh.quaternion.setFromUnitVectors(UP, _d.divideScalar(L));
+      m.mesh.scale.set(1, L, 1);
+    }
+    if (s.mat) {
+      if (state.stress) { const t = Math.min(1, s.r / s.ultR); s.mat.color.setRGB(0.2 + 1.6 * t, 1.4 - 1.2 * Math.max(0, t - 0.4) * 1.8, 0.25); s.mat.emissive.setRGB(t * 0.5, (1 - t) * 0.12, 0); }
+      else { s.mat.color.setRGB(1 - s.damage * 0.4, 1 - s.damage * 0.55, 1 - s.damage * 0.6); s.mat.emissive.setRGB(0, 0, 0); }
+    }
+  }
+}
+function updateRods() {
+  const tx = tableBody ? tableBody.translation().x : 0;
+  for (const { r, c, z } of rods) {
+    const x0 = -4.1, x1 = -TX + tx - 0.12, L = Math.max(0.05, x1 - x0);
+    r.position.set((x0 + x1) / 2, 0.55, z); r.scale.set(1, L, 1);
+    c.position.set(-TX + tx - 0.12, 0.6, z);
+  }
+}
+function syncMeshes() {
+  for (const o of bodies) { const t = o.body.translation(), r = o.body.rotation(); o.mesh.position.set(t.x, t.y, t.z); o.mesh.quaternion.set(r.x, r.y, r.z, r.w); }
+  updateMembers(); updateRods();
+}
+
+/* ---------------- impacts: sound and dust ---------------- */
+function detectImpacts(dtReal) {
+  for (const o of bodies) {
+    if (o.kind === 'table') continue;
+    const v = o.body.linvel(); const dv = Math.hypot(v.x - o.pv.x, v.y - o.pv.y, v.z - o.pv.z);
+    o.pv.set(v.x, v.y, v.z); o.cool -= dtReal;
+    if (dv > 1.6 && o.cool <= 0) {
+      const J = o.mass * dv; if (J < 25) continue;
+      o.cool = 0.3;
+      const t = o.body.translation();
+      fireEvent({ kind: 'impact', p: Math.min(1, J / (o.kind === 'slab' ? 20000 : 600)), heavy: o.kind === 'slab' || J > 2000, pos: [t.x, t.y, t.z] });
+    }
+  }
+}
+function fireEvent(e, replaying = false) {
+  if (!replaying) { e.t = simT; events.push(e); }
+  const [x, y, z] = e.pos;
+  if (e.kind === 'impact') { sndImpact(e.p, e.heavy); if (e.heavy) puff(x, y, z, 26, 1.6); else if (e.p > 0.5) puff(x, y, z, 4, 0.6); }
+  else if (e.kind === 'crack') sndCrack(0.6);
+  else if (e.kind === 'fail') { sndCrack(1); sndImpact(1, true); puff(x, y, z, 40, 2.2); kickCam = 1; }
+}
+
+/* dust puffs (sprite pool) */
+const dustTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); const g = x.createRadialGradient(64, 64, 4, 64, 64, 62); g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(0.5, 'rgba(255,255,255,.22)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+const dust = [];
+for (let i = 0; i < 220; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: dustTex, color: 0xd6cdbf, transparent: true, depthWrite: false, opacity: 0 })); s.visible = false; scene.add(s); dust.push({ s, v: new V3(), life: 0, max: 1, size: 1 }); }
+let dustI = 0;
+function puff(x, y, z, n, power) {
+  for (let i = 0; i < n; i++) {
+    const d = dust[dustI++ % dust.length]; d.s.visible = true; d.life = 0; d.max = 1.6 + Math.random() * 2.2; d.size = 0.4 + Math.random() * 0.6 * power;
+    d.s.position.set(x + (Math.random() - 0.5) * 2.4, y + (Math.random() - 0.3) * 0.6, z + (Math.random() - 0.5) * 2.4);
+    d.v.set((Math.random() - 0.5) * 2.6 * power, Math.random() * 0.9 * power, (Math.random() - 0.5) * 2.6 * power);
+  }
+}
+function updateDust(dt) {
+  for (const d of dust) {
+    if (!d.s.visible) continue;
+    d.life += dt; const k = d.life / d.max;
+    if (k >= 1) { d.s.visible = false; continue; }
+    d.v.multiplyScalar(Math.pow(0.35, dt)); d.v.y += 0.12 * dt;
+    d.s.position.addScaledVector(d.v, dt);
+    const sz = d.size * (1 + k * 3); d.s.scale.set(sz, sz, sz);
+    d.s.material.opacity = 0.85 * Math.sin(Math.PI * Math.min(1, k * 1.15)) * (1 - k);
+  }
+}
+
+/* ---------------- sound (Web Audio, no files) ---------------- */
+let ac = null, master, rumbleG, humG, noiseBuf;
+function initAudio() {
+  if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
+  try {
+    ac = new AudioContext(); master = ac.createGain(); master.gain.value = state.sound ? 0.9 : 0; master.connect(ac.destination);
+    noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate); const nd = noiseBuf.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    const bb = ac.createBuffer(1, ac.sampleRate * 4, ac.sampleRate); const bd = bb.getChannelData(0); let l = 0;
+    for (let i = 0; i < bd.length; i++) { l = (l + 0.02 * (Math.random() * 2 - 1)) / 1.02; bd[i] = l * 3.5; }
+    const src = ac.createBufferSource(); src.buffer = bb; src.loop = true;
+    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 140;
+    rumbleG = ac.createGain(); rumbleG.gain.value = 0; src.connect(lp).connect(rumbleG).connect(master); src.start();
+    const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 58; const of = ac.createBiquadFilter(); of.type = 'lowpass'; of.frequency.value = 260;
+    humG = ac.createGain(); humG.gain.value = 0; o.connect(of).connect(humG).connect(master); o.start();
+  } catch (e) { ac = null; }
+}
+let sndBudget = 0;
+function sndImpact(p, heavy) {
+  if (!ac || sndBudget > 8) return; sndBudget++;
+  const t = ac.currentTime, slow = state.slow || state.replay.on ? 0.5 : 1;
+  const n = ac.createBufferSource(); n.buffer = noiseBuf; n.playbackRate.value = slow;
+  const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = (heavy ? 260 : 1400 + 1800 * Math.random()) * slow;
+  const g = ac.createGain(); const peak = (heavy ? 1.0 : 0.35) * (0.25 + 0.75 * p);
+  g.gain.setValueAtTime(peak, t); g.gain.exponentialRampToValueAtTime(0.001, t + (heavy ? 1.2 : 0.18) / slow);
+  n.connect(f).connect(g).connect(master); n.start(t, Math.random()); n.stop(t + 1.5 / slow);
+  if (heavy) { const o = ac.createOscillator(); o.frequency.setValueAtTime(70 * slow, t); o.frequency.exponentialRampToValueAtTime(28, t + 0.6 / slow); const og = ac.createGain(); og.gain.setValueAtTime(0.9 * p, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.8 / slow); o.connect(og).connect(master); o.start(t); o.stop(t + 1 / slow); }
+}
+function sndCrack(p) {
+  if (!ac) return; const t = ac.currentTime;
+  for (let i = 0; i < 5; i++) {
+    const n = ac.createBufferSource(); n.buffer = noiseBuf; const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800 + Math.random() * 2500; f.Q.value = 2;
+    const g = ac.createGain(); const st = t + i * (0.03 + Math.random() * 0.06);
+    g.gain.setValueAtTime(0.0001, t); g.gain.setValueAtTime(0.7 * p, st); g.gain.exponentialRampToValueAtTime(0.001, st + 0.07);
+    n.connect(f).connect(g).connect(master); n.start(t, Math.random()); n.stop(st + 0.1);
+  }
+}
+function audioTick() {
+  sndBudget = Math.max(0, sndBudget - 0.5);
+  if (!ac) return; const t = ac.currentTime;
+  const live = !state.replay.on;
+  rumbleG.gain.setTargetAtTime(live ? Math.min(1, shake.accG * 2.2) * 0.9 : 0, t, 0.08);
+  humG.gain.setTargetAtTime(live && (shake.on || shake.env > 0.01) ? 0.05 : 0, t, 0.2);
+}
+
+/* ---------------- replay recording ---------------- */
+const REC_SECONDS = 15;
+function record() {
+  const kids = dyn.children, n = kids.length;
+  if (frames.length && frames[frames.length - 1].t === simT) return;
+  const buf = new Float32Array(n * 11);
+  for (let i = 0; i < n; i++) {
+    const o = kids[i], k = i * 11;
+    buf[k] = o.position.x; buf[k + 1] = o.position.y; buf[k + 2] = o.position.z;
+    buf[k + 3] = o.quaternion.x; buf[k + 4] = o.quaternion.y; buf[k + 5] = o.quaternion.z; buf[k + 6] = o.quaternion.w;
+    buf[k + 7] = o.scale.x; buf[k + 8] = o.scale.y; buf[k + 9] = o.scale.z; buf[k + 10] = o.visible ? 1 : 0;
+  }
+  frames.push({ t: simT, n, buf });
+  while (frames.length && frames[0].t < simT - REC_SECONDS) frames.shift();
+}
+const _p0 = new V3(), _p1 = new V3(), _r0 = new Q(), _r1 = new Q();
+function applyFrame(t) {
+  let lo = 0, hi = frames.length - 1;
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (frames[mid].t <= t) lo = mid; else hi = mid; }
+  const A = frames[lo], B = frames[hi]; const al = B.t > A.t ? Math.min(1, Math.max(0, (t - A.t) / (B.t - A.t))) : 0;
+  const kids = dyn.children;
+  for (let i = 0; i < kids.length; i++) {
+    const o = kids[i];
+    if (i >= A.n) { o.visible = false; continue; }
+    const a = A.buf, k = i * 11, b = i < B.n ? B.buf : a;
+    _p0.set(a[k], a[k + 1], a[k + 2]); _p1.set(b[k], b[k + 1], b[k + 2]); o.position.lerpVectors(_p0, _p1, al);
+    _r0.set(a[k + 3], a[k + 4], a[k + 5], a[k + 6]); _r1.set(b[k + 3], b[k + 4], b[k + 5], b[k + 6]); o.quaternion.slerpQuaternions(_r0, _r1, al);
+    o.scale.set(a[k + 7] + (b[k + 7] - a[k + 7]) * al, a[k + 8] + (b[k + 8] - a[k + 8]) * al, a[k + 9] + (b[k + 9] - a[k + 9]) * al);
+    o.visible = a[k + 10] > 0.5;
+  }
+}
+function enterReplay() {
+  if (frames.length < 30) { toast('Shake something first. The last 15 seconds are always recorded.'); return; }
+  const R = state.replay;
+  R.on = true; R.t0 = frames[0].t; R.t1 = frames[frames.length - 1].t; R.t = R.t0; R.playing = true; R.prevT = R.t0;
+  R.vis = dyn.children.map(o => o.visible);
+  $('#replaybar').hidden = false; $('#rpPlay').textContent = 'Pause';
+  $('#replayBtn').setAttribute('aria-pressed', 'true');
+  for (const d of dust) d.s.visible = false;
+  toast('Replay of the last ' + Math.round(R.t1 - R.t0) + ' seconds');
+}
+function exitReplay() {
+  const R = state.replay; if (!R.on) return;
+  R.on = false; dyn.children.forEach((o, i) => { if (R.vis && i < R.vis.length) o.visible = R.vis[i]; });
+  syncMeshes();
+  $('#replaybar').hidden = true; $('#replayBtn').setAttribute('aria-pressed', 'false');
+}
+function replayTick(dt) {
+  const R = state.replay;
+  if (R.playing) {
+    const prev = R.t; R.t += dt * R.speed;
+    if (R.t > R.t1) { R.t = R.t0; }
+    else for (const e of events) if (e.t > prev && e.t <= R.t) fireEvent(e, true);
+  }
+  applyFrame(R.t);
+  $('#rpScrub').value = (R.t - R.t0) / Math.max(0.001, R.t1 - R.t0);
+}
+
+/* ---------------- chart ---------------- */
+const chart = $('#chart'), cx = chart.getContext('2d');
+function sizeChart() { const r = chart.getBoundingClientRect(); chart.width = r.width * devicePixelRatio; chart.height = r.height * devicePixelRatio; }
+function roofSwing() {
+  if (!levels.length) return 0;
+  const top = levels[levels.length - 1].translation(); const tx = tableBody.translation().x;
+  return top.x - tx - X0;
+}
+function drawChart() {
+  const W = chart.width, H = chart.height, d = devicePixelRatio;
+  cx.clearRect(0, 0, W, H);
+  cx.strokeStyle = 'rgba(255,255,255,.1)'; cx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) { cx.beginPath(); cx.moveTo(0, H * i / 4); cx.lineTo(W, H * i / 4); cx.stroke(); }
+  cx.fillStyle = 'rgba(255,255,255,.45)'; cx.font = `${11 * d}px JetBrains Mono, monospace`;
+  cx.fillText('+0.6 g', 4 * d, 12 * d); cx.fillText('+80 cm', W - 50 * d, 12 * d);
+  if (chartData.length < 2) return;
+  const tEnd = chartData[chartData.length - 1][0], span = 12;
+  const line = (idx, scale, col) => {
+    cx.strokeStyle = col; cx.lineWidth = 2 * d; cx.beginPath();
+    let pen = false;
+    chartData.forEach(p => { if (Number.isNaN(p[idx])) { pen = false; return; } const X = W * (1 - (tEnd - p[0]) / span); const v = Math.max(-1, Math.min(1, p[idx] / scale)); const Y = H / 2 - v * (H / 2 - 2); pen ? cx.lineTo(X, Y) : cx.moveTo(X, Y); pen = true; });
+    cx.stroke();
+  };
+  line(1, 0.6, '#ffb020'); line(2, 80, '#4cc9f0');
+}
+
+/* ---------------- stories UI ---------------- */
+function renderStories() {
+  const wrap = $('#stories'); wrap.innerHTML = '';
+  [...springs].reverse().forEach(s => {
+    const row = document.createElement('div'); row.className = 'story';
+    row.innerHTML = `<span>${s.label}</span><span class="pill"></span><span class="dr"></span>`;
+    wrap.appendChild(row); s.row = row;
+  });
+  updateStories();
+}
+function updateStories() {
+  for (const s of springs) {
+    if (!s.row) continue;
+    const pill = s.row.children[1], dr = s.row.children[2];
+    const st = s.failed ? ['fail', 'Failed'] : s.damage > 0.01 ? ['crack', 'Cracking'] : ['ok', 'OK'];
+    pill.className = 'pill ' + st[0]; pill.textContent = st[1];
+    dr.textContent = s.iso ? (s.d * 100).toFixed(0) + ' cm' : s.failed ? '' : (s.r * 100).toFixed(1) + '% drift';
+  }
+}
+
+/* ---------------- cameras ---------------- */
+let kickCam = 0, savedOrbit = null;
+const camOffset = new V3();
+function setCam(mode) {
+  if (mode === state.cam) return;
+  if (state.cam === 'orbit') savedOrbit = { p: camera.position.clone(), t: controls.target.clone() };
+  state.cam = mode; segSet('#segCam', mode);
+  controls.enabled = mode === 'orbit';
+  camera.up.set(0, 1, 0);
+  if (mode === 'orbit') { camera.fov = 45; if (savedOrbit) { camera.position.copy(savedOrbit.p); controls.target.copy(savedOrbit.t); } }
+  if (mode === 'side') camera.fov = 26;
+  if (mode === 'ride') camera.fov = 78;
+  camera.updateProjectionMatrix();
+  $('#camtag').hidden = mode === 'orbit';
+}
+const _e = new V3(), _t = new V3(), _u = new V3();
+function updateCamera() {
+  if (state.cam === 'orbit') { controls.update(); }
+  else if (state.cam === 'side') { camera.position.set(0.3, 3.9, 21); camera.lookAt(0.3, 3.75, 0); }
+  else if (state.cam === 'ride') {
+    const lv = levels[TYPES[state.type].iso ? 1 : 0];
+    if (lv) {
+      const o = bodies.find(b => b.body === lv).mesh;
+      _e.set(-1.25, 1.35, 1.2).applyQuaternion(o.quaternion).add(o.position);
+      _t.set(1.0, 0.55, -0.9).applyQuaternion(o.quaternion).add(o.position);
+      _u.set(0, 1, 0).applyQuaternion(o.quaternion);
+      camera.position.copy(_e); camera.up.copy(_u); camera.lookAt(_t);
+    }
+  }
+  camOffset.set(0, 0, 0);
+  if (!reduceMotion && !state.replay.on) {
+    const k = (state.cam === 'orbit' ? shake.accG * 0.05 : state.cam === 'side' ? shake.accG * 0.015 : 0) + kickCam * 0.12;
+    if (k > 0.0005) camOffset.set((Math.random() - 0.5) * k, (Math.random() - 0.5) * k, (Math.random() - 0.5) * k);
+  }
+  kickCam *= 0.9;
+  camera.position.add(camOffset);
+  if (state.cam !== 'orbit') {
+    const tc = Math.max(0, simT); const mm = Math.floor(tc / 60), ss = Math.floor(tc % 60), cs = Math.floor((tc * 100) % 100);
+    const tcs = `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+    $('#camtag').innerHTML = `<span class="rec"></span>${state.cam === 'side' ? 'CAM 2   HIGH SPEED   240 FPS' : 'CAM 3   FLOOR 2   INTERIOR'}   ${state.replay.on ? 'REPLAY' : tcs}`;
+  }
+}
+
+/* ---------------- main loop ---------------- */
+let last = performance.now(), uiT = 0;
+function physStep() { updateTable(); applySprings(); world.step(); simT += DT; }
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dtReal = Math.min(0.05, (now - last) / 1000); last = now;
+  const ts = state.slow ? 0.2 : 1;
+  if (state.replay.on) replayTick(dtReal);
+  else if (world) {
+    acc += dtReal * ts; let n = 0;
+    while (acc >= DT && n < 16) { physStep(); acc -= DT; n++; }
+    if (n === 16) acc = 0;
+    if (n > 0) {
+      syncMeshes(); detectImpacts(dtReal); record();
+      const roof = roofSwing();
+      if (shake.on || shake.env > 0) {
+        if (Math.abs(roof) > shake.peakRoof && !springs.some(s => s.failed)) { shake.peakRoof = Math.abs(roof); shake.peakF = shake.fNow; }
+      }
+      chartData.push([simT, signedAcc(), springs.some(s => s.failed) ? NaN : roof * 100]);
+      while (chartData.length && chartData[0][0] < simT - 12) chartData.shift();
+    }
+  }
+  updateDust(dtReal * (state.replay.on ? state.replay.speed : ts));
+  audioTick();
+  updateCamera();
+  if (now - uiT > 100) { uiT = now; uiTick(); }
+  renderer.render(scene, camera);
+  camera.position.sub(camOffset);
+}
+function signedAcc() { return -(shake.x - 2 * shake.x1 + shake.x2) / (DT * DT) / 9.81; }
+let peakAcc = 0;
+function uiTick() {
+  if (state.replay.on) return;
+  peakAcc = Math.max(shake.accG, peakAcc * 0.85);
+  $('#roF').textContent = state.mode === 'quake' ? (shake.on ? 'mixed' : '0.00 Hz') : ((shake.on || shake.env > 0.01) ? shake.fNow.toFixed(2) : '0.00') + ' Hz';
+  $('#roA').textContent = peakAcc.toFixed(2) + ' g';
+  $('#roD').textContent = springs.some(s => s.failed) ? 'collapsed' : Math.abs(roofSwing() * 100).toFixed(0) + ' cm';
+  if (natBeat > 0 && !springs.some(s => s.failed)) computeNatBeat();
+  $('#roN').textContent = natBeat > 0 ? natBeat.toFixed(2) + ' Hz' : 'collapsed';
+  updateStories();
+  if (shake.failNote) { if ($('#peakNote').textContent !== shake.failNote) $('#peakNote').textContent = shake.failNote; }
+  else if (shake.peakRoof > 0.02) {
+    const note = state.mode === 'sweep' ? `Biggest roof swing: ${(shake.peakRoof * 100).toFixed(0)} cm at ${shake.peakF.toFixed(2)} Hz` : `Biggest roof swing: ${(shake.peakRoof * 100).toFixed(0)} cm`;
+    if ($('#peakNote').textContent !== note) $('#peakNote').textContent = note;
+  }
+  if (springs.some(s => s.failed) && !$('#peakNote').dataset.fail) { $('#peakNote').dataset.fail = '1'; }
+  if (shake.done && shake.env <= 0 && $('#shakeBtn').classList.contains('on')) updateShakeBtn();
+  drawChart();
+}
+
+/* ---------------- controls ---------------- */
+function segSet(sel, v) { $$(sel + ' button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(v)))); }
+function updateShakeBtn() { const b = $('#shakeBtn'); b.classList.toggle('on', shake.on); b.textContent = shake.on ? 'Stop' : 'Shake'; }
+function setType(t) { state.type = t; segSet('#segType', t); exitReplay(); delete $('#peakNote').dataset.fail; $('#peakNote').textContent = ''; resetWorld(); updateShakeBtn(); }
+function setMode(m) { state.mode = m; segSet('#segMode', m); $('#freq').disabled = m !== 'steady'; if (shake.on) stopShake(); }
+function setF(f) { state.f = f; $('#freq').value = f; $('#freqOut').textContent = f.toFixed(2) + ' Hz'; }
+function setG(g) { state.g = g; $('#strength').value = g; $('#gOut').textContent = g.toFixed(2) + ' g'; }
+function setStress(on) { state.stress = on; $('#stressBtn').setAttribute('aria-pressed', String(on)); }
+$$('#segType button').forEach(b => b.onclick = () => setType(b.dataset.v));
+$$('#segMode button').forEach(b => b.onclick = () => setMode(b.dataset.v));
+$$('#segCam button').forEach(b => b.onclick = () => setCam(b.dataset.v));
+$$('#segSpeed button').forEach(b => b.onclick = () => { state.replay.speed = +b.dataset.v; segSet('#segSpeed', b.dataset.v); });
+$('#freq').oninput = e => setF(+e.target.value);
+$('#strength').oninput = e => setG(+e.target.value);
+$('#shakeBtn').onclick = () => shake.on ? stopShake() : startShake();
+$('#resetBtn').onclick = () => setType(state.type);
+$('#slowBtn').onclick = () => { state.slow = !state.slow; $('#slowBtn').setAttribute('aria-pressed', String(state.slow)); };
+$('#replayBtn').onclick = () => state.replay.on ? exitReplay() : enterReplay();
+$('#rpExit').onclick = exitReplay;
+$('#rpPlay').onclick = () => { const R = state.replay; R.playing = !R.playing; $('#rpPlay').textContent = R.playing ? 'Pause' : 'Play'; };
+$('#rpScrub').oninput = e => { const R = state.replay; R.t = R.t0 + (+e.target.value) * (R.t1 - R.t0); R.playing = false; $('#rpPlay').textContent = 'Play'; };
+$('#stressBtn').onclick = () => setStress(!state.stress);
+$('#soundBtn').onclick = () => { state.sound = !state.sound; $('#soundBtn').setAttribute('aria-pressed', String(state.sound)); $('#soundBtn').textContent = state.sound ? 'Sound on' : 'Sound off'; initAudio(); if (master) master.gain.value = state.sound ? 0.9 : 0; };
+$('#hall').onchange = async e => { toast('Loading the hall...', 8000); await loadHall(e.target.value); toast('Hall ready', 1200); };
+
+/* ---------------- guided tests ---------------- */
+const STOPS = [
+  { title: 'A table that makes earthquakes', tags: ['real'], cfg: { type: 'bare', mode: 'steady', f: 3.0, g: 0.15, cam: 'orbit', stress: false },
+    body: `<p>Engineers test buildings by bolting them to a steel table and pushing the table with hydraulic actuators. The motion can copy a real earthquake.</p><p>The largest table in the world is E-Defense in Miki, Japan. It is 20 m by 15 m and can carry 1,200 tonnes. In 2009 it shook a full-size seven-story wood building.</p><p>This lab is smaller. The building is a three-story steel frame with concrete floors and furniture inside.</p>`,
+    notice: 'Run the test and watch the two chrome rods on the left. What moves with the table, and what lags behind?' },
+  { title: "Find the building's beat", tags: ['model'], cfg: { type: 'bare', mode: 'sweep', g: 0.2, cam: 'side', stress: true },
+    body: `<p>Every building has a natural frequency. It is the rhythm the building sways at on its own. Push in time with that rhythm and each push adds to the last swing. That is resonance.</p><p>This test starts slow and speeds up from 0.6 Hz to 4 Hz over 32 seconds. Stress colors are on, so each story turns from green to red as it bends.</p>`,
+    notice: "Watch the Roof swing readout and the chart. At what frequency does the roof swing hardest? Compare it with the natural beat." },
+  { title: 'Same strength, different beat', tags: ['model'], cfg: { type: 'bare', mode: 'steady', f: 3.0, g: 0.2, cam: 'orbit', stress: true },
+    body: `<p>Now the table shakes at 3 Hz with the same strength as before. That is far from the building's beat.</p><p>When it is done, press Reset, set Frequency to 1.2 Hz and press Shake again.</p>`,
+    notice: 'Why can the same strength of shaking do almost nothing at one frequency and bring the building down at another?' },
+  { title: 'Brace it', tags: ['model', 'real'], cfg: { type: 'braced', mode: 'sweep', g: 0.2, cam: 'side', stress: true },
+    body: `<p>Steel X-braces make each story about six times stiffer. A stiffer building has a faster natural beat, so the danger zone moves up the frequency scale.</p><p>Many real steel buildings use braced frames for this reason.</p>`,
+    notice: 'Where does the roof swing hardest now? Did any story crack, and did the building stay up?' },
+  { title: 'Float it', tags: ['model', 'real'], cfg: { type: 'isolated', mode: 'quake', g: 0.35, cam: 'ride', stress: false },
+    body: `<p>Base isolation sets the whole building on rubber bearings. The bearings are soft side to side, so the ground moves under the building while the floors above move slowly and gently.</p><p>San Francisco City Hall was retrofitted with base isolators after the 1989 Loma Prieta earthquake.</p><p>The camera rides along on floor 2.</p>`,
+    notice: 'Watch the crates on floor 2. Then switch to Orbit and watch the black bearings. Where did the motion go?' },
+  { title: 'What falls first', tags: ['real', 'model'], cfg: { type: 'bare', mode: 'quake', g: 0.3, cam: 'orbit', stress: false },
+    body: `<p>The block wall on the right has no steel inside. Furniture, shelves and ceilings are not part of the structure either. Engineers call these nonstructural parts.</p><p>In studies of offices, hotels and hospitals, nonstructural parts made up about half to 70 percent of a building's cost. They are also what hurts people in a room.</p>`,
+    notice: 'After the quake, press Replay and pick 0.25x. Name three things in this scene that would hurt someone standing nearby.' },
+];
+let stopI = 0;
+const TAGN = { real: 'Real world', model: 'Model' };
+function showStop(i) {
+  stopI = Math.max(0, Math.min(STOPS.length - 1, i)); const s = STOPS[stopI];
+  $('#pTags').innerHTML = s.tags.map(t => `<span class="tag ${t}">${TAGN[t]}</span>`).join('') + `<span class="step">Test ${stopI + 1} of ${STOPS.length}</span>`;
+  $('#pTitle').textContent = s.title; $('#pBody').innerHTML = s.body; $('#pNotice').textContent = 'Notice: ' + s.notice;
+  $('#pPrev').disabled = stopI === 0; $('#pNext').disabled = stopI === STOPS.length - 1;
+  $('#panel').hidden = false; $('#pTitle').focus();
+  history.replaceState(null, '', '#stop=' + (stopI + 1));
+}
+function runStop() {
+  const c = STOPS[stopI].cfg;
+  setMode(c.mode); if (c.f) setF(c.f); setG(c.g); setStress(c.stress); setType(c.type); setCam(c.cam);
+  setTimeout(startShake, 700);
+}
+$('#guideBtn').onclick = () => showStop(stopI);
+$('#pClose').onclick = () => $('#panel').hidden = true;
+$('#pPrev').onclick = () => showStop(stopI - 1);
+$('#pNext').onclick = () => showStop(stopI + 1);
+$('#pRun').onclick = runStop;
+$('#textBody').innerHTML = STOPS.map((s, i) => `<h2>Test ${i + 1}. ${s.title}</h2><p><b>${s.tags.map(t => TAGN[t]).join(' and ')}</b></p>${s.body}<p><b>Notice:</b> ${s.notice}</p>`).join('');
+
+/* modals */
+let lastFocus = null;
+function openModal(id) { lastFocus = document.activeElement; $(id).hidden = false; ($(id).querySelector('[data-close]') || $(id).querySelector('button')).focus(); }
+function closeModal(el) { el.hidden = true; if (lastFocus) lastFocus.focus(); }
+$('#textBtn').onclick = () => openModal('#textM');
+$('#aboutBtn').onclick = () => openModal('#aboutM');
+$$('[data-close]').forEach(b => b.onclick = () => closeModal(b.closest('.modal-back')));
+$$('.modal-back').forEach(m => m.addEventListener('click', e => { if (e.target === m) closeModal(m); }));
+addEventListener('keydown', e => { if (e.key === 'Escape') $$('.modal-back').forEach(m => { if (!m.hidden) closeModal(m); }); });
+$('#introGuide').onclick = () => { closeModal($('#introM')); initAudio(); showStop(0); };
+$('#introFree').onclick = () => { closeModal($('#introM')); initAudio(); };
+
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); sizeChart(); });
+
+/* ---------------- boot ---------------- */
+async function boot() {
+  const MODEL_IDS = ['metal_office_desk', 'plastic_monobloc_chair_01', 'cardboard_box_01', 'wooden_crate_01', 'plastic_crate_01', 'tool_cart', 'portable_searchlight', 'korean_fire_extinguisher_01', 'industrial_storage_cart', 'metal_toolbox'];
+  loadTotal = 4 + MODEL_IDS.length;
+  await RAPIER.init({}); loadStep('Loading the lab hall from Poly Haven');
+  const hall = loadHall('aircraft').then(() => loadStep('Loading textures and props'));
+  const mats = loadMaterials().then(() => loadStep());
+  const mods = MODEL_IDS.map(id => phModel(id).then(() => loadStep()));
+  const timeout = new Promise(r => setTimeout(r, 25000));
+  await Promise.race([Promise.all([hall, mats, ...mods]), timeout]);
+  if (!MAT.slab) await mats;
+  sharedGeo(); buildStatic(); resetWorld();
+  sizeChart(); setF(state.f); setG(state.g); setMode(state.mode);
+  loadStep('Ready');
+  $('#loader').hidden = true;
+  const h = location.hash, m = h.match(/stop=(\d+)/), run = /run/.test(h);
+  if (m) { showStop(+m[1] - 1); if (run) runStop(); } else openModal('#introM');
+  requestAnimationFrame(frame);
+}
+boot().catch(e => { $('#loadMsg').textContent = 'Something failed to load: ' + e.message; console.error(e); });
+window.__lab = { levels: () => levels.map(b => { const t = b.translation(); return [+t.x.toFixed(2), +t.y.toFixed(2), +t.z.toFixed(2)]; }), state, shake, springs: () => springs, startShake, setType, setMode, setCam, enterReplay, get simT() { return simT; } };
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "quake-street",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Photoreal earthquake lab: a city street, five buildings, Three.js, Rapier and Poly Haven.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "assets": "node scripts/fetch-polyhaven.mjs",
+    "kit": "node scripts/build-kit.mjs",
+    "bench:physics": "node scripts/bench-physics.mjs"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-simd-compat": "0.19.3",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@types/three": "0.186.0",
+    "rapier-next": "npm:@dimforge/rapier3d-simd-compat@0.21.0",
+    "typescript": "5.9.3",
+    "vite": "7.1.12",
+    "vitest": "3.2.4"
+  }
+}

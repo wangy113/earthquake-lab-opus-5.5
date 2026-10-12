@@ -1,0 +1,3810 @@
+{
+ "id": "modular_urban_apartments_facade",
+ "page": "https://polyhaven.com/a/modular_urban_apartments_facade",
+ "pieceCount": 147,
+ "byRole": {
+  "wall": 51,
+  "window": 19,
+  "door": 21,
+  "base": 9,
+  "dado": 21,
+  "crown": 13,
+  "cornice": 13,
+  "other": 0
+ },
+ "gridMeters": 3,
+ "storyHeightMeters": 3,
+ "notes": [
+  "Pivot: local x runs from -width to 0 and y from 0 up, so the pivot is the bottom-right corner seen from outside. The facade faces +z.",
+  "26 of 51 wall panels are single planes with no thickness and need solidifying before they can break apart."
+ ],
+ "pieces": {
+  "door_angled_small_01": {
+   "role": "door",
+   "size": [
+    1.355,
+    2.81,
+    1.355
+   ],
+   "min": [
+    -2.162,
+    0,
+    -1.193
+   ],
+   "max": [
+    -0.807,
+    2.81,
+    0.162
+   ],
+   "tris": 1360,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_centered_small_01": {
+   "role": "door",
+   "size": [
+    1.48,
+    2.81,
+    0.44
+   ],
+   "min": [
+    -2.24,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.76,
+    2.81,
+    0.2
+   ],
+   "tris": 1360,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_centered_large_01": {
+   "role": "door",
+   "size": [
+    2.08,
+    2.81,
+    0.44
+   ],
+   "min": [
+    -2.54,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.46,
+    2.81,
+    0.2
+   ],
+   "tris": 1711,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_angled_large_01": {
+   "role": "door",
+   "size": [
+    1.779,
+    2.81,
+    1.779
+   ],
+   "min": [
+    -2.874,
+    0,
+    -1.905
+   ],
+   "max": [
+    -1.095,
+    2.81,
+    -0.126
+   ],
+   "tris": 1711,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_offset_small_01": {
+   "role": "door",
+   "size": [
+    1.12,
+    2.26,
+    0.23
+   ],
+   "min": [
+    -1.31,
+    0,
+    -0.2
+   ],
+   "max": [
+    -0.19,
+    2.26,
+    0.03
+   ],
+   "tris": 790,
+   "materials": [
+    "objects"
+   ]
+  },
+  "door_offset_small_02": {
+   "role": "door",
+   "size": [
+    1.12,
+    2.26,
+    0.23
+   ],
+   "min": [
+    -2.81,
+    0,
+    -0.2
+   ],
+   "max": [
+    -1.69,
+    2.26,
+    0.03
+   ],
+   "tris": 790,
+   "materials": [
+    "objects"
+   ]
+  },
+  "door_centered_small_02": {
+   "role": "door",
+   "size": [
+    1.12,
+    2.26,
+    0.23
+   ],
+   "min": [
+    -2.06,
+    0,
+    -0.2
+   ],
+   "max": [
+    -0.94,
+    2.26,
+    0.03
+   ],
+   "tris": 790,
+   "materials": [
+    "objects"
+   ]
+  },
+  "door_window_small_01": {
+   "role": "door",
+   "size": [
+    2.62,
+    2.3,
+    0.39
+   ],
+   "min": [
+    -2.81,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.19,
+    2.3,
+    0.15
+   ],
+   "tris": 1637,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_window_small_05": {
+   "role": "door",
+   "size": [
+    2.62,
+    2.3,
+    0.39
+   ],
+   "min": [
+    -2.81,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.19,
+    2.3,
+    0.15
+   ],
+   "tris": 1597,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_window_small_09": {
+   "role": "door",
+   "size": [
+    2.48,
+    2.26,
+    0.255
+   ],
+   "min": [
+    -2.67,
+    0,
+    -0.214
+   ],
+   "max": [
+    -0.19,
+    2.26,
+    0.04
+   ],
+   "tris": 1195,
+   "materials": [
+    "objects",
+    "glass",
+    "trim_01"
+   ]
+  },
+  "door_window_small_03": {
+   "role": "door",
+   "size": [
+    2.8,
+    2.81,
+    0.44
+   ],
+   "min": [
+    -2.81,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.01,
+    2.81,
+    0.2
+   ],
+   "tris": 2207,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_window_small_07": {
+   "role": "door",
+   "size": [
+    2.8,
+    2.81,
+    0.44
+   ],
+   "min": [
+    -2.81,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.01,
+    2.81,
+    0.2
+   ],
+   "tris": 2167,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_window_small_011": {
+   "role": "door",
+   "size": [
+    2.66,
+    2.81,
+    0.44
+   ],
+   "min": [
+    -2.67,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.01,
+    2.81,
+    0.2
+   ],
+   "tris": 1765,
+   "materials": [
+    "objects",
+    "glass",
+    "trim_01"
+   ]
+  },
+  "door_offset_small_04": {
+   "role": "door",
+   "size": [
+    1.48,
+    2.81,
+    0.44
+   ],
+   "min": [
+    -2.99,
+    0,
+    -0.24
+   ],
+   "max": [
+    -1.51,
+    2.81,
+    0.2
+   ],
+   "tris": 1360,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_offset_small_03": {
+   "role": "door",
+   "size": [
+    1.48,
+    2.81,
+    0.44
+   ],
+   "min": [
+    -1.49,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.01,
+    2.81,
+    0.2
+   ],
+   "tris": 1360,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_window_small_02": {
+   "role": "door",
+   "size": [
+    2.62,
+    2.3,
+    0.39
+   ],
+   "min": [
+    -2.81,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.19,
+    2.3,
+    0.15
+   ],
+   "tris": 1637,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_window_small_04": {
+   "role": "door",
+   "size": [
+    2.8,
+    2.81,
+    0.44
+   ],
+   "min": [
+    -2.99,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.19,
+    2.81,
+    0.2
+   ],
+   "tris": 2207,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_window_small_06": {
+   "role": "door",
+   "size": [
+    2.62,
+    2.3,
+    0.39
+   ],
+   "min": [
+    -2.81,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.19,
+    2.3,
+    0.15
+   ],
+   "tris": 1597,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_window_small_08": {
+   "role": "door",
+   "size": [
+    2.8,
+    2.81,
+    0.44
+   ],
+   "min": [
+    -2.99,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.19,
+    2.81,
+    0.2
+   ],
+   "tris": 2167,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "door_window_small_010": {
+   "role": "door",
+   "size": [
+    2.48,
+    2.26,
+    0.255
+   ],
+   "min": [
+    -2.81,
+    0,
+    -0.214
+   ],
+   "max": [
+    -0.33,
+    2.26,
+    0.04
+   ],
+   "tris": 1195,
+   "materials": [
+    "objects",
+    "glass",
+    "trim_01"
+   ]
+  },
+  "door_window_small_012": {
+   "role": "door",
+   "size": [
+    2.66,
+    2.81,
+    0.44
+   ],
+   "min": [
+    -2.99,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.33,
+    2.81,
+    0.2
+   ],
+   "tris": 1765,
+   "materials": [
+    "objects",
+    "glass",
+    "trim_01"
+   ]
+  },
+  "cornice_end_02": {
+   "role": "cornice",
+   "size": [
+    0.14,
+    0.2,
+    0.14
+   ],
+   "min": [
+    0,
+    0,
+    -0.1
+   ],
+   "max": [
+    0.14,
+    0.2,
+    0.04
+   ],
+   "tris": 90,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_end_01": {
+   "role": "cornice",
+   "size": [
+    0.14,
+    0.2,
+    0.14
+   ],
+   "min": [
+    -0.14,
+    0,
+    -0.1
+   ],
+   "max": [
+    0,
+    0.2,
+    0.04
+   ],
+   "tris": 90,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_standard_standard_01": {
+   "role": "cornice",
+   "size": [
+    3,
+    0.2,
+    0.04
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    0.2,
+    0.04
+   ],
+   "tris": 18,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_standard_angled_large_01": {
+   "role": "cornice",
+   "size": [
+    3.04,
+    0.2,
+    3.04
+   ],
+   "min": [
+    -3.04,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.2,
+    0.04
+   ],
+   "tris": 180,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_standard_angled_small_01": {
+   "role": "cornice",
+   "size": [
+    2.04,
+    0.2,
+    2.04
+   ],
+   "min": [
+    -2.04,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.2,
+    0.04
+   ],
+   "tris": 180,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_standard_corner_large_01": {
+   "role": "cornice",
+   "size": [
+    3.04,
+    0.2,
+    3.04
+   ],
+   "min": [
+    -3.04,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.2,
+    0.04
+   ],
+   "tris": 90,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_standard_corner_large_02": {
+   "role": "cornice",
+   "size": [
+    3,
+    0.2,
+    3
+   ],
+   "min": [
+    -3,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.2,
+    0
+   ],
+   "tris": 90,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_standard_corner_small_01": {
+   "role": "cornice",
+   "size": [
+    2.04,
+    0.2,
+    2.04
+   ],
+   "min": [
+    -2.04,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.2,
+    0.04
+   ],
+   "tris": 90,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_standard_corner_small_02": {
+   "role": "cornice",
+   "size": [
+    2,
+    0.2,
+    2
+   ],
+   "min": [
+    -2,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.2,
+    0
+   ],
+   "tris": 90,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_pier_angled_01": {
+   "role": "cornice",
+   "size": [
+    0.497,
+    0.2,
+    0.277
+   ],
+   "min": [
+    -0.247,
+    0,
+    -0.177
+   ],
+   "max": [
+    0.25,
+    0.2,
+    0.1
+   ],
+   "tris": 56,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_pier_corner_01": {
+   "role": "cornice",
+   "size": [
+    0.35,
+    0.2,
+    0.35
+   ],
+   "min": [
+    -0.1,
+    0,
+    -0.25
+   ],
+   "max": [
+    0.25,
+    0.2,
+    0.1
+   ],
+   "tris": 56,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_pier_standard_01": {
+   "role": "cornice",
+   "size": [
+    0.35,
+    0.2,
+    0.1
+   ],
+   "min": [
+    -0.175,
+    0,
+    0
+   ],
+   "max": [
+    0.175,
+    0.2,
+    0.1
+   ],
+   "tris": 42,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "cornice_pier_corner_02": {
+   "role": "cornice",
+   "size": [
+    0.35,
+    0.2,
+    0.35
+   ],
+   "min": [
+    -0.35,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    0.2,
+    0.35
+   ],
+   "tris": 98,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "crown_standard_angled_large_01": {
+   "role": "crown",
+   "size": [
+    3.33,
+    0.75,
+    3.33
+   ],
+   "min": [
+    -3.33,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.75,
+    0.33
+   ],
+   "tris": 1500,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_standard_standard_01": {
+   "role": "crown",
+   "size": [
+    3,
+    0.75,
+    0.43
+   ],
+   "min": [
+    -3,
+    0,
+    -0.1
+   ],
+   "max": [
+    0,
+    0.75,
+    0.33
+   ],
+   "tris": 684,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_standard_angled_small_01": {
+   "role": "crown",
+   "size": [
+    2.33,
+    0.75,
+    2.33
+   ],
+   "min": [
+    -2.33,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.75,
+    0.33
+   ],
+   "tris": 1194,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_end_02": {
+   "role": "crown",
+   "size": [
+    0.43,
+    0.75,
+    0.43
+   ],
+   "min": [
+    0,
+    0,
+    -0.1
+   ],
+   "max": [
+    0.43,
+    0.75,
+    0.33
+   ],
+   "tris": 442,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_end_01": {
+   "role": "crown",
+   "size": [
+    0.43,
+    0.75,
+    0.43
+   ],
+   "min": [
+    -0.43,
+    0,
+    -0.1
+   ],
+   "max": [
+    0,
+    0.75,
+    0.33
+   ],
+   "tris": 442,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_standard_corner_large_01": {
+   "role": "crown",
+   "size": [
+    3.33,
+    0.75,
+    3.33
+   ],
+   "min": [
+    -3.33,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.75,
+    0.33
+   ],
+   "tris": 1700,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_standard_corner_large_02": {
+   "role": "crown",
+   "size": [
+    3.1,
+    0.75,
+    3.1
+   ],
+   "min": [
+    -3,
+    0,
+    -3.1
+   ],
+   "max": [
+    0.1,
+    0.75,
+    0
+   ],
+   "tris": 1554,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_standard_corner_small_01": {
+   "role": "crown",
+   "size": [
+    2.33,
+    0.75,
+    2.33
+   ],
+   "min": [
+    -2.33,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.75,
+    0.33
+   ],
+   "tris": 1292,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_standard_corner_small_02": {
+   "role": "crown",
+   "size": [
+    2.1,
+    0.75,
+    2.1
+   ],
+   "min": [
+    -2,
+    0,
+    -2.1
+   ],
+   "max": [
+    0.1,
+    0.75,
+    0
+   ],
+   "tris": 1146,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_pier_pedestal_01": {
+   "role": "crown",
+   "size": [
+    0.71,
+    0.835,
+    0.525
+   ],
+   "min": [
+    -0.355,
+    -0.055,
+    -0.1
+   ],
+   "max": [
+    0.355,
+    0.78,
+    0.425
+   ],
+   "tris": 486,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_pier_corner_01": {
+   "role": "crown",
+   "size": [
+    0.855,
+    0.835,
+    0.855
+   ],
+   "min": [
+    -0.425,
+    -0.055,
+    -0.43
+   ],
+   "max": [
+    0.43,
+    0.78,
+    0.425
+   ],
+   "tris": 634,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_pier_angled_01": {
+   "role": "crown",
+   "size": [
+    1.072,
+    0.835,
+    0.826
+   ],
+   "min": [
+    -0.626,
+    -0.055,
+    -0.401
+   ],
+   "max": [
+    0.446,
+    0.78,
+    0.424
+   ],
+   "tris": 634,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "crown_pier_corner_02": {
+   "role": "crown",
+   "size": [
+    0.63,
+    0.835,
+    0.63
+   ],
+   "min": [
+    -0.53,
+    -0.055,
+    -0.1
+   ],
+   "max": [
+    0.1,
+    0.78,
+    0.53
+   ],
+   "tris": 680,
+   "materials": [
+    "trim_02"
+   ]
+  },
+  "dado_end_02": {
+   "role": "dado",
+   "size": [
+    0.14,
+    0.5,
+    0.08
+   ],
+   "min": [
+    0,
+    0,
+    -0.04
+   ],
+   "max": [
+    0.14,
+    0.5,
+    0.04
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_end_01": {
+   "role": "dado",
+   "size": [
+    0.14,
+    0.5,
+    0.08
+   ],
+   "min": [
+    -0.14,
+    0,
+    -0.04
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_door_centered_large_01": {
+   "role": "dado",
+   "size": [
+    3,
+    0.5,
+    0.08
+   ],
+   "min": [
+    -3,
+    0,
+    -0.04
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 48,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_door_centered_small_01": {
+   "role": "dado",
+   "size": [
+    3,
+    0.5,
+    0.08
+   ],
+   "min": [
+    -3,
+    0,
+    -0.04
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 48,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_door_angled_large_01": {
+   "role": "dado",
+   "size": [
+    3.04,
+    0.5,
+    3.04
+   ],
+   "min": [
+    -3.04,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 80,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_door_angled_small_01": {
+   "role": "dado",
+   "size": [
+    2.04,
+    0.5,
+    2.04
+   ],
+   "min": [
+    -2.04,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 80,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_door_centered_small_02": {
+   "role": "dado",
+   "size": [
+    3,
+    0.5,
+    0.08
+   ],
+   "min": [
+    -3,
+    0,
+    -0.04
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 48,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_door_offset_small_01": {
+   "role": "dado",
+   "size": [
+    3,
+    0.5,
+    0.08
+   ],
+   "min": [
+    -3,
+    0,
+    -0.04
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_door_offset_small_02": {
+   "role": "dado",
+   "size": [
+    3,
+    0.5,
+    0.08
+   ],
+   "min": [
+    -3,
+    0,
+    -0.04
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_door_window_small_01": {
+   "role": "dado",
+   "size": [
+    3,
+    0.5,
+    0.08
+   ],
+   "min": [
+    -3,
+    0,
+    -0.04
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 80,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_standard_standard_01": {
+   "role": "dado",
+   "size": [
+    3,
+    0.5,
+    0.04
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 8,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_standard_angled_large_01": {
+   "role": "dado",
+   "size": [
+    3.04,
+    0.5,
+    3.04
+   ],
+   "min": [
+    -3.04,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 80,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_standard_angled_small_01": {
+   "role": "dado",
+   "size": [
+    2.04,
+    0.5,
+    2.04
+   ],
+   "min": [
+    -2.04,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 72,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_standard_corner_large_01": {
+   "role": "dado",
+   "size": [
+    3.04,
+    0.5,
+    3.04
+   ],
+   "min": [
+    -3.04,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_standard_corner_large_02": {
+   "role": "dado",
+   "size": [
+    3,
+    0.5,
+    3
+   ],
+   "min": [
+    -3,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.5,
+    0
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_standard_corner_small_01": {
+   "role": "dado",
+   "size": [
+    2.04,
+    0.5,
+    2.04
+   ],
+   "min": [
+    -2.04,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.5,
+    0.04
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_standard_corner_small_02": {
+   "role": "dado",
+   "size": [
+    2,
+    0.5,
+    2
+   ],
+   "min": [
+    -2,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.5,
+    0
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_pier_pedestal_01": {
+   "role": "dado",
+   "size": [
+    0.4,
+    0.54,
+    0.13
+   ],
+   "min": [
+    -0.2,
+    0,
+    0
+   ],
+   "max": [
+    0.2,
+    0.54,
+    0.13
+   ],
+   "tris": 50,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_pier_angled_01": {
+   "role": "dado",
+   "size": [
+    0.57,
+    0.54,
+    0.349
+   ],
+   "min": [
+    -0.29,
+    0,
+    -0.219
+   ],
+   "max": [
+    0.28,
+    0.54,
+    0.13
+   ],
+   "tris": 68,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_pier_corner_01": {
+   "role": "dado",
+   "size": [
+    0.41,
+    0.54,
+    0.41
+   ],
+   "min": [
+    -0.13,
+    0,
+    -0.28
+   ],
+   "max": [
+    0.28,
+    0.54,
+    0.13
+   ],
+   "tris": 68,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "dado_pier_corner_02": {
+   "role": "dado",
+   "size": [
+    0.38,
+    0.54,
+    0.38
+   ],
+   "min": [
+    -0.38,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    0.54,
+    0.38
+   ],
+   "tris": 122,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "wall_door_centered_large_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2256,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_centered_large_01",
+   "opening": {
+    "min": [
+     -2.54,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.46,
+     2.81,
+     0.2
+    ]
+   }
+  },
+  "wall_door_angled_large_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    3
+   ],
+   "min": [
+    -3,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 5736,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_angled_large_01",
+   "opening": {
+    "min": [
+     -2.874,
+     0,
+     -1.905
+    ],
+    "max": [
+     -1.095,
+     2.81,
+     -0.126
+    ]
+   }
+  },
+  "wall_door_angled_small_01": {
+   "role": "wall",
+   "size": [
+    2,
+    3,
+    2
+   ],
+   "min": [
+    -2,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 4800,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_angled_small_01",
+   "opening": {
+    "min": [
+     -2.162,
+     0,
+     -1.193
+    ],
+    "max": [
+     -0.807,
+     2.81,
+     0.162
+    ]
+   }
+  },
+  "wall_window_angled_large_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    3
+   ],
+   "min": [
+    -3,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 6696,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_angled_large_01",
+   "opening": {
+    "min": [
+     -2.853,
+     0,
+     -1.919
+    ],
+    "max": [
+     -1.081,
+     2.3,
+     -0.147
+    ]
+   }
+  },
+  "wall_window_angled_small_01": {
+   "role": "wall",
+   "size": [
+    2,
+    3,
+    2
+   ],
+   "min": [
+    -2,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 5312,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_angled_small_01",
+   "opening": {
+    "min": [
+     -2,
+     0,
+     -1.066
+    ],
+    "max": [
+     -0.934,
+     2.3,
+     0
+    ]
+   }
+  },
+  "wall_window_centered_large_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2944,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_centered_large_01",
+   "opening": {
+    "min": [
+     -2.56,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.44,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_window_centered_large_02": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2944,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_centered_large_02",
+   "opening": {
+    "min": [
+     -2.56,
+     0.3,
+     -0.24
+    ],
+    "max": [
+     -0.44,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_window_angled_small_02": {
+   "role": "wall",
+   "size": [
+    2,
+    3,
+    2
+   ],
+   "min": [
+    -2,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 5312,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_angled_small_02",
+   "opening": {
+    "min": [
+     -2,
+     0.3,
+     -1.066
+    ],
+    "max": [
+     -0.934,
+     2.3,
+     0
+    ]
+   }
+  },
+  "wall_window_angled_large_02": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    3
+   ],
+   "min": [
+    -3,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 6696,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_angled_large_02",
+   "opening": {
+    "min": [
+     -2.818,
+     0.3,
+     -1.884
+    ],
+    "max": [
+     -1.045,
+     2.3,
+     -0.111
+    ]
+   }
+  },
+  "wall_window_centered_large_03": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0.18
+   ],
+   "min": [
+    -3,
+    0,
+    -0.18
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 4608,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_centered_large_03",
+   "opening": {
+    "min": [
+     -2.37,
+     0.453,
+     -0.164
+    ],
+    "max": [
+     -0.63,
+     2.138,
+     0.04
+    ]
+   }
+  },
+  "wall_window_centered_double_03": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0.18
+   ],
+   "min": [
+    -3,
+    0,
+    -0.18
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 5504,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_centered_double_03",
+   "opening": {
+    "min": [
+     -2.67,
+     0.453,
+     -0.214
+    ],
+    "max": [
+     -0.33,
+     2.138,
+     0.04
+    ]
+   }
+  },
+  "wall_window_centered_double_02": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2944,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_centered_double_02",
+   "opening": {
+    "min": [
+     -2.81,
+     0.3,
+     -0.24
+    ],
+    "max": [
+     -0.19,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_window_centered_double_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2944,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_centered_double_01",
+   "opening": {
+    "min": [
+     -2.81,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.19,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_door_centered_small_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3264,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_centered_small_01",
+   "opening": {
+    "min": [
+     -2.24,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.76,
+     2.81,
+     0.2
+    ]
+   }
+  },
+  "wall_door_centered_small_02": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3520,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_centered_small_02",
+   "opening": {
+    "min": [
+     -2.06,
+     0,
+     -0.2
+    ],
+    "max": [
+     -0.94,
+     2.26,
+     0.03
+    ]
+   }
+  },
+  "wall_window_centered_small_02": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3776,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_centered_small_02",
+   "opening": {
+    "min": [
+     -2.06,
+     0.3,
+     -0.24
+    ],
+    "max": [
+     -0.94,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_window_centered_small_03": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0.18
+   ],
+   "min": [
+    -3,
+    0,
+    -0.18
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 5056,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_centered_small_03",
+   "opening": {
+    "min": [
+     -1.92,
+     0.453,
+     -0.214
+    ],
+    "max": [
+     -1.08,
+     2.138,
+     0.04
+    ]
+   }
+  },
+  "wall_window_centered_small_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3776,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_centered_small_01",
+   "opening": {
+    "min": [
+     -2.06,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.94,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_window_offset_small_05": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0.18
+   ],
+   "min": [
+    -3,
+    0,
+    -0.18
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 5056,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_offset_small_05",
+   "opening": {
+    "min": [
+     -1.17,
+     0.453,
+     -0.214
+    ],
+    "max": [
+     -0.33,
+     2.138,
+     0.04
+    ]
+   }
+  },
+  "wall_window_offset_small_03": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3776,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_offset_small_03",
+   "opening": {
+    "min": [
+     -1.31,
+     0.3,
+     -0.24
+    ],
+    "max": [
+     -0.19,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_window_offset_small_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3776,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_offset_small_01",
+   "opening": {
+    "min": [
+     -1.31,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.19,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_window_offset_small_06": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0.18
+   ],
+   "min": [
+    -3,
+    0,
+    -0.18
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 5056,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_offset_small_06",
+   "opening": {
+    "min": [
+     -2.67,
+     0.453,
+     -0.214
+    ],
+    "max": [
+     -1.83,
+     2.138,
+     0.04
+    ]
+   }
+  },
+  "wall_window_offset_small_04": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3776,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_offset_small_04",
+   "opening": {
+    "min": [
+     -2.81,
+     0.3,
+     -0.24
+    ],
+    "max": [
+     -1.69,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_window_offset_small_02": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3776,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "window_offset_small_02",
+   "opening": {
+    "min": [
+     -2.81,
+     0,
+     -0.24
+    ],
+    "max": [
+     -1.69,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_door_offset_small_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3520,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_offset_small_01",
+   "opening": {
+    "min": [
+     -1.31,
+     0,
+     -0.2
+    ],
+    "max": [
+     -0.19,
+     2.26,
+     0.03
+    ]
+   }
+  },
+  "wall_door_offset_small_02": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3520,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_offset_small_02",
+   "opening": {
+    "min": [
+     -2.81,
+     0,
+     -0.2
+    ],
+    "max": [
+     -1.69,
+     2.26,
+     0.03
+    ]
+   }
+  },
+  "wall_door_window_small_010": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0.18
+   ],
+   "min": [
+    -3,
+    0,
+    -0.18
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3968,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_window_small_010",
+   "opening": {
+    "min": [
+     -2.81,
+     0,
+     -0.214
+    ],
+    "max": [
+     -0.33,
+     2.26,
+     0.04
+    ]
+   }
+  },
+  "wall_door_window_small_06": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2688,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_window_small_06",
+   "opening": {
+    "min": [
+     -2.81,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.19,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_door_window_small_02": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2688,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_window_small_02",
+   "opening": {
+    "min": [
+     -2.81,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.19,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_door_window_small_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2688,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_window_small_01",
+   "opening": {
+    "min": [
+     -2.81,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.19,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_door_window_small_05": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2688,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_window_small_05",
+   "opening": {
+    "min": [
+     -2.81,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.19,
+     2.3,
+     0.15
+    ]
+   }
+  },
+  "wall_door_window_small_09": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0.18
+   ],
+   "min": [
+    -3,
+    0,
+    -0.18
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3968,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_window_small_09",
+   "opening": {
+    "min": [
+     -2.67,
+     0,
+     -0.214
+    ],
+    "max": [
+     -0.19,
+     2.26,
+     0.04
+    ]
+   }
+  },
+  "wall_door_window_small_013": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0.18
+   ],
+   "min": [
+    -3,
+    0,
+    -0.18
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3712,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "wall_door_window_small_08": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2432,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_window_small_08",
+   "opening": {
+    "min": [
+     -2.99,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.19,
+     2.81,
+     0.2
+    ]
+   }
+  },
+  "wall_door_window_small_04": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2432,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_window_small_04",
+   "opening": {
+    "min": [
+     -2.99,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.19,
+     2.81,
+     0.2
+    ]
+   }
+  },
+  "wall_door_window_small_012": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0.18
+   ],
+   "min": [
+    -3,
+    0,
+    -0.18
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3712,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_window_small_012",
+   "opening": {
+    "min": [
+     -2.99,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.33,
+     2.81,
+     0.2
+    ]
+   }
+  },
+  "wall_door_window_small_07": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2432,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_window_small_07",
+   "opening": {
+    "min": [
+     -2.81,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.01,
+     2.81,
+     0.2
+    ]
+   }
+  },
+  "wall_door_window_small_03": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 2432,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_window_small_03",
+   "opening": {
+    "min": [
+     -2.81,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.01,
+     2.81,
+     0.2
+    ]
+   }
+  },
+  "wall_standard_standard_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 4608,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "wall_standard_angled_large_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    3
+   ],
+   "min": [
+    -3,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 8256,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "wall_standard_angled_small_01": {
+   "role": "wall",
+   "size": [
+    2,
+    3,
+    2
+   ],
+   "min": [
+    -2,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 6144,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "wall_standard_corner_large_01": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    3
+   ],
+   "min": [
+    -3,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 9216,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "wall_standard_corner_large_02": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    3
+   ],
+   "min": [
+    -3,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 9216,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "wall_standard_corner_small_01": {
+   "role": "wall",
+   "size": [
+    2,
+    3,
+    2
+   ],
+   "min": [
+    -2,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 6144,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "wall_standard_corner_small_02": {
+   "role": "wall",
+   "size": [
+    2,
+    3,
+    2
+   ],
+   "min": [
+    -2,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 6144,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "wall_door_offset_small_04": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3264,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_offset_small_04",
+   "opening": {
+    "min": [
+     -2.99,
+     0,
+     -0.24
+    ],
+    "max": [
+     -1.51,
+     2.81,
+     0.2
+    ]
+   }
+  },
+  "wall_door_offset_small_03": {
+   "role": "wall",
+   "size": [
+    3,
+    3,
+    0
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0
+   ],
+   "tris": 3264,
+   "materials": [
+    "plaster"
+   ],
+   "insert": "door_offset_small_03",
+   "opening": {
+    "min": [
+     -1.49,
+     0,
+     -0.24
+    ],
+    "max": [
+     -0.01,
+     2.81,
+     0.2
+    ]
+   }
+  },
+  "wall_pier_angled_01": {
+   "role": "wall",
+   "size": [
+    0.373,
+    3,
+    0.191
+   ],
+   "min": [
+    -0.173,
+    0,
+    -0.141
+   ],
+   "max": [
+    0.2,
+    3,
+    0.05
+   ],
+   "tris": 576,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "wall_pier_corner_01": {
+   "role": "wall",
+   "size": [
+    0.25,
+    3,
+    0.25
+   ],
+   "min": [
+    -0.05,
+    0,
+    -0.2
+   ],
+   "max": [
+    0.2,
+    3,
+    0.05
+   ],
+   "tris": 576,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "wall_pier_corner_02": {
+   "role": "wall",
+   "size": [
+    0.3,
+    3,
+    0.3
+   ],
+   "min": [
+    -0.3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    3,
+    0.3
+   ],
+   "tris": 576,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "wall_pier_standard_01": {
+   "role": "wall",
+   "size": [
+    0.25,
+    3,
+    0.05
+   ],
+   "min": [
+    -0.125,
+    0,
+    0
+   ],
+   "max": [
+    0.125,
+    3,
+    0.05
+   ],
+   "tris": 384,
+   "materials": [
+    "plaster"
+   ]
+  },
+  "base_end_02": {
+   "role": "base",
+   "size": [
+    0.2,
+    0.75,
+    0.2
+   ],
+   "min": [
+    0,
+    0,
+    0
+   ],
+   "max": [
+    0.2,
+    0.75,
+    0.2
+   ],
+   "tris": 38,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "base_end_01": {
+   "role": "base",
+   "size": [
+    0.2,
+    0.75,
+    0.2
+   ],
+   "min": [
+    -0.2,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    0.75,
+    0.2
+   ],
+   "tris": 38,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "base_standard_01": {
+   "role": "base",
+   "size": [
+    3,
+    0.75,
+    0.2
+   ],
+   "min": [
+    -3,
+    0,
+    0
+   ],
+   "max": [
+    0,
+    0.75,
+    0.2
+   ],
+   "tris": 8,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "base_angled_large_01": {
+   "role": "base",
+   "size": [
+    3.2,
+    0.75,
+    3.2
+   ],
+   "min": [
+    -3.2,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.75,
+    0.2
+   ],
+   "tris": 64,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "base_angled_small_01": {
+   "role": "base",
+   "size": [
+    2.2,
+    0.75,
+    2.2
+   ],
+   "min": [
+    -2.2,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.75,
+    0.2
+   ],
+   "tris": 64,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "base_corner_large_02": {
+   "role": "base",
+   "size": [
+    3,
+    0.75,
+    3
+   ],
+   "min": [
+    -3,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.75,
+    0
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "base_corner_large_01": {
+   "role": "base",
+   "size": [
+    3.2,
+    0.75,
+    3.2
+   ],
+   "min": [
+    -3.2,
+    0,
+    -3
+   ],
+   "max": [
+    0,
+    0.75,
+    0.2
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "base_corner_small_02": {
+   "role": "base",
+   "size": [
+    2,
+    0.75,
+    2
+   ],
+   "min": [
+    -2,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.75,
+    0
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "base_corner_small_01": {
+   "role": "base",
+   "size": [
+    2.2,
+    0.75,
+    2.2
+   ],
+   "min": [
+    -2.2,
+    0,
+    -2
+   ],
+   "max": [
+    0,
+    0.75,
+    0.2
+   ],
+   "tris": 40,
+   "materials": [
+    "trim_01"
+   ]
+  },
+  "window_centered_large_02": {
+   "role": "window",
+   "size": [
+    2.12,
+    2,
+    0.39
+   ],
+   "min": [
+    -2.56,
+    0.3,
+    -0.24
+   ],
+   "max": [
+    -0.44,
+    2.3,
+    0.15
+   ],
+   "tris": 1264,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_angled_small_02": {
+   "role": "window",
+   "size": [
+    1.065,
+    2,
+    1.065
+   ],
+   "min": [
+    -2,
+    0.3,
+    -1.066
+   ],
+   "max": [
+    -0.934,
+    2.3,
+    0
+   ],
+   "tris": 807,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_angled_large_02": {
+   "role": "window",
+   "size": [
+    1.773,
+    2,
+    1.773
+   ],
+   "min": [
+    -2.818,
+    0.3,
+    -1.884
+   ],
+   "max": [
+    -1.045,
+    2.3,
+    -0.111
+   ],
+   "tris": 1264,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_centered_large_01": {
+   "role": "window",
+   "size": [
+    2.12,
+    2.3,
+    0.39
+   ],
+   "min": [
+    -2.56,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.44,
+    2.3,
+    0.15
+   ],
+   "tris": 1408,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_angled_small_01": {
+   "role": "window",
+   "size": [
+    1.065,
+    2.3,
+    1.065
+   ],
+   "min": [
+    -2,
+    0,
+    -1.066
+   ],
+   "max": [
+    -0.934,
+    2.3,
+    0
+   ],
+   "tris": 847,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_angled_large_01": {
+   "role": "window",
+   "size": [
+    1.773,
+    2.3,
+    1.773
+   ],
+   "min": [
+    -2.853,
+    0,
+    -1.919
+   ],
+   "max": [
+    -1.081,
+    2.3,
+    -0.147
+   ],
+   "tris": 1408,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_centered_large_03": {
+   "role": "window",
+   "size": [
+    1.74,
+    1.685,
+    0.205
+   ],
+   "min": [
+    -2.37,
+    0.453,
+    -0.164
+   ],
+   "max": [
+    -0.63,
+    2.138,
+    0.04
+   ],
+   "tris": 730,
+   "materials": [
+    "objects",
+    "glass",
+    "trim_01"
+   ]
+  },
+  "window_centered_double_02": {
+   "role": "window",
+   "size": [
+    2.62,
+    2,
+    0.39
+   ],
+   "min": [
+    -2.81,
+    0.3,
+    -0.24
+   ],
+   "max": [
+    -0.19,
+    2.3,
+    0.15
+   ],
+   "tris": 1614,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_centered_double_01": {
+   "role": "window",
+   "size": [
+    2.62,
+    2.3,
+    0.39
+   ],
+   "min": [
+    -2.81,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.19,
+    2.3,
+    0.15
+   ],
+   "tris": 1694,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_centered_double_03": {
+   "role": "window",
+   "size": [
+    2.34,
+    1.685,
+    0.255
+   ],
+   "min": [
+    -2.67,
+    0.453,
+    -0.214
+   ],
+   "max": [
+    -0.33,
+    2.138,
+    0.04
+   ],
+   "tris": 810,
+   "materials": [
+    "trim_01",
+    "objects",
+    "glass"
+   ]
+  },
+  "window_offset_small_03": {
+   "role": "window",
+   "size": [
+    1.12,
+    2,
+    0.39
+   ],
+   "min": [
+    -1.31,
+    0.3,
+    -0.24
+   ],
+   "max": [
+    -0.19,
+    2.3,
+    0.15
+   ],
+   "tris": 807,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_offset_small_01": {
+   "role": "window",
+   "size": [
+    1.12,
+    2.3,
+    0.39
+   ],
+   "min": [
+    -1.31,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.19,
+    2.3,
+    0.15
+   ],
+   "tris": 847,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_offset_small_05": {
+   "role": "window",
+   "size": [
+    0.84,
+    1.685,
+    0.255
+   ],
+   "min": [
+    -1.17,
+    0.453,
+    -0.214
+   ],
+   "max": [
+    -0.33,
+    2.138,
+    0.04
+   ],
+   "tris": 405,
+   "materials": [
+    "trim_01",
+    "objects",
+    "glass"
+   ]
+  },
+  "window_offset_small_04": {
+   "role": "window",
+   "size": [
+    1.12,
+    2,
+    0.39
+   ],
+   "min": [
+    -2.81,
+    0.3,
+    -0.24
+   ],
+   "max": [
+    -1.69,
+    2.3,
+    0.15
+   ],
+   "tris": 807,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_offset_small_02": {
+   "role": "window",
+   "size": [
+    1.12,
+    2.3,
+    0.39
+   ],
+   "min": [
+    -2.81,
+    0,
+    -0.24
+   ],
+   "max": [
+    -1.69,
+    2.3,
+    0.15
+   ],
+   "tris": 847,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_offset_small_06": {
+   "role": "window",
+   "size": [
+    0.84,
+    1.685,
+    0.255
+   ],
+   "min": [
+    -2.67,
+    0.453,
+    -0.214
+   ],
+   "max": [
+    -1.83,
+    2.138,
+    0.04
+   ],
+   "tris": 405,
+   "materials": [
+    "trim_01",
+    "objects",
+    "glass"
+   ]
+  },
+  "window_centered_small_02": {
+   "role": "window",
+   "size": [
+    1.12,
+    2,
+    0.39
+   ],
+   "min": [
+    -2.06,
+    0.3,
+    -0.24
+   ],
+   "max": [
+    -0.94,
+    2.3,
+    0.15
+   ],
+   "tris": 807,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_centered_small_01": {
+   "role": "window",
+   "size": [
+    1.12,
+    2.3,
+    0.39
+   ],
+   "min": [
+    -2.06,
+    0,
+    -0.24
+   ],
+   "max": [
+    -0.94,
+    2.3,
+    0.15
+   ],
+   "tris": 847,
+   "materials": [
+    "objects",
+    "glass"
+   ]
+  },
+  "window_centered_small_03": {
+   "role": "window",
+   "size": [
+    0.84,
+    1.685,
+    0.255
+   ],
+   "min": [
+    -1.92,
+    0.453,
+    -0.214
+   ],
+   "max": [
+    -1.08,
+    2.138,
+    0.04
+   ],
+   "tris": 405,
+   "materials": [
+    "trim_01",
+    "objects",
+    "glass"
+   ]
+  }
+ }
+}

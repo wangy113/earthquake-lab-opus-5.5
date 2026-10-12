@@ -1,0 +1,7 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+.cache/
+# downloaded Poly Haven assets are reproducible with `npm run assets`
+public/assets/polyhaven/

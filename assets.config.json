@@ -1,0 +1,20 @@
+{
+  "$comment": "Pinned Poly Haven assets (all CC0). `npm run assets` downloads them to public/assets/polyhaven and writes manifest.json. Add `--only <id>` to fetch one asset.",
+  "hdris": [
+    { "id": "kloofendal_48d_partly_cloudy_puresky", "res": "2k", "role": "sky: midday (strategy B default)" },
+    { "id": "wide_street_01", "res": "2k", "role": "sky: urban street (strategy A candidate)" }
+  ],
+  "textures": [
+    { "id": "asphalt_02", "res": "1k", "role": "street" },
+    { "id": "concrete_pavement", "res": "1k", "role": "sidewalk and plaza" },
+    { "id": "concrete_floor_worn_001", "res": "1k", "role": "floor slabs" },
+    { "id": "plastered_wall_04", "res": "1k", "role": "inner face of facade panels" },
+    { "id": "cracked_concrete_wall", "res": "1k", "role": "damage blend" }
+  ],
+  "models": [
+    { "id": "modular_urban_apartments_facade", "res": "1k", "role": "facade kit: apartments" },
+    { "id": "modular_factory_facade", "res": "1k", "role": "facade kit: brick" },
+    { "id": "street_lamp_01", "res": "1k", "role": "street prop" },
+    { "id": "fire_hydrant", "res": "1k", "role": "street prop" }
+  ]
+}
