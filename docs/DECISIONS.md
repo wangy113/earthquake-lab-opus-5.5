@@ -113,3 +113,83 @@ Screenshots are in `docs/phase1/`. `npm test` and `npm run e2e` cover the slice.
 - **Side walls when they topple:** they show their plain plaster backing, with no breakage detail.
 - **Modular props:** `modular_street_seating` holds several bench variants side by side. Pick a single piece.
 - **No frame rate yet:** fps is still unmeasured on real hardware.
+
+# Phase 2 notes (the full street)
+
+Screenshots are in `docs/phase2/` (960 x 540, rendered in the container with SwiftShader, so no GPU effects tuned on real hardware yet). `npm test` (12 tests) and `npm run e2e` cover the street.
+
+## What was built
+
+- **The street (`src/sim/street.ts`):** the five-building lineup from the plan, left to right:
+  1. Old brick store, x -16 to -4
+  2. Apartments over shops (the Phase 1 building), x 0 to 12
+  3. Mid-rise, x 12.5 to 27.5, half a meter from building 2
+  4. Glass tower, x 32 to 50
+  5. Fire station, x 55 to 67, with its moat plates
+
+  In front: a 4 m sidewalk, an 8 m road one curb (15 cm) lower, then a 28 m plaza. Rapier's ground now has the curb steps too.
+- **Every building sways:** each of the four new buildings has its own shear-building model, tuned to its target period (0.2, 1.2, 2.5 and 0.4 s). Each story is also a driven box in Rapier, so debris from building 2 hits building 3 instead of passing through it. Only building 2 can fail in Phase 2.
+- **Building generator (`src/world/buildingGen.ts`):** brick store and fire station ground floor from the factory kit, mid-rise and fire station upper floors from the apartments kit, and a procedural curtain wall for the tower, because Poly Haven has no glass facade. Interiors behind the windows: room partitions, slabs, and furniture on the lower floors.
+- **Whole-building shear shader:** each vertex carries its story index and the shader blends it between the floor offsets below and above it (`buildingShearMaterial`). A 12-story building is 14 draw calls instead of hundreds of separate kit pieces.
+- **Repainting:** buildings 2 and 3 use the same apartments kit side by side, so building 3 is desaturated to off-white and the fire station is painted red. This is done in the shader, so the kit textures are shared.
+- **Street dressing (`src/world/street.ts`):**
+  - Poly Haven lamps (two styles), hydrants, trash cans, utility boxes, manhole covers, benches and planters.
+  - Power poles with three sagging cables each span.
+  - Road markings and a crosswalk.
+  - All of it merged by material into one static group.
+- **Filler city (`src/world/filler.ts`):** about 340 blocks around the street with Poly Haven facade textures and a window grid drawn in the shader, fading into exponential fog colored from the HDRI's horizon.
+- **Times of day (`src/render/sky.ts`):** midday, clear, golden hour and overcast, all Poly Haven pure-sky HDRIs. The sun is measured from the HDRI itself and then clamped out of the copy used for lighting, as the plan asked.
+
+## Sky: the sun comes from the HDRI
+
+`analyzeSky` treats every pixel brighter than 25 times the mean sky (and at least 8) as sun. From those pixels it takes:
+- **Direction:** the energy-weighted centroid.
+- **Color and strength:** the excess energy times each pixel's solid angle. In three.js units this is the directional light intensity that matches the environment lighting.
+- **Clamping:** those pixels are clamped to the threshold in the environment copy, so the sun is not counted twice.
+
+Measured on the 2k files:
+
+| Preset | HDRI | Sun irradiance | Sun elevation | Sun color |
+|---|---|---|---|---|
+| Midday | kloofendal_48d_partly_cloudy_puresky | 4.3 | 48 degrees | white |
+| Clear | autumn_field_puresky | 5.8 | 29 degrees | white |
+| Golden | qwantani_sunset_puresky | about 2.9 | 6 degrees (shadows use 9) | orange #ffb22f |
+| Overcast | kloofendal_overcast_puresky | 0 | none | sky only |
+
+- **Sun strength checks out:** Phase 1 had picked 4.2 for the midday sun by eye, and the measurement gives 4.3.
+- **Golden hour changed HDRI:** the plan named `table_mountain_1_puresky` and the first try was `qwantani_late_afternoon_puresky`. That one's sun is white at 19 degrees and looked like noon. Of seven sunset skies tested, only `qwantani_sunset_puresky` has a clear orange sun.
+- **Sky rotation:** each preset turns the sky (`sunFrom`) so the sun rakes across the street fronts. Several HDRIs put the sun behind the buildings, which left every facade in shadow.
+- **Exposure:** it follows the light on the street partway (power 0.7), so golden hour and overcast still read darker than noon.
+
+## Triangle budget: Phase 0 commitments 1, 2 and 4 are done, 3 partly
+
+Per frame, all passes counted (main, AO pre-pass, three shadow cascades), plaza camera:
+
+| Step | Triangles | Draw calls |
+|---|---|---|
+| First build of the street | 6.2M | 1,277 |
+| After the steps below | 1.66M | 729 |
+
+The steps:
+1. **Merging by material:** done for every building, and for the street dressing.
+2. **Shadow proxies:** facades of buildings 1, 3, 4 and 5 only receive shadows. One invisible box per story casts them, with the same shear shader. `?shadows=full` turns this off for comparison. Building 2 still casts its own detailed shadow, because its ground story breaks apart.
+3. **Simplification at load (`meshoptimizer` 0.25.0):** every Poly Haven model and kit loses its sub-3 mm bevels on load, which takes 949k triangles down to 273k. The mid-rise alone went from 587k to 120k.
+4. **Far LODs:** each building switches to a 4 cm-error version past about 70 m from its center. Building 3's far version is 85k triangles.
+5. **Props:** the hydrant and trash-can models each hold two variants, so only one is kept (DECISIONS 3 note done). The modular street seating was swapped for `painted_wooden_bench`, which is 630 triangles.
+
+Plan item 3 asked for build-time LODs with `gltf-transform`. Load-time simplification gets the same result without a second copy of the assets. Its cost on load has not been measured on real hardware. Revisit in Phase 7 if load time matters on Chromebooks.
+
+## What was dropped, and why
+
+- **The hero tree:** `jacaranda_tree` turned out to be 3.9M triangles and 205 MB at 1k, not the 312k the API's listing suggested. No Poly Haven tree fits the budget. The plaza uses planters instead.
+- **The fire escape:** at about 9.5 m tall, it does not fit the 2-story brick store. It can come back with Phase 4's nonstructural failures.
+- **KTX2 textures:** not done. KTX-Software is not installed in the container, and the textures are still 1k JPEGs (about 30 MB). This moves to Phase 7 with the other size budgets.
+
+## Open for Phase 3 and later
+
+- **Frame rate:** still unmeasured on a real GPU. SwiftShader runs the street at about 1 fps, the same as Phase 1's single building, so it says nothing. Please check the status line on the demo laptop.
+- **The model is not yet the physics the plan asks for:**
+  - The fire station is fixed-base. Its isolators and moat behavior come in Phase 3.
+  - All five buildings shake with the same record at the same instant. The small delay of a wave crossing the street also comes in Phase 3.
+- **Tuning, for now:** the yield drifts are set so the Phase 1 quake matches the plan's "near quake on rock" outcome. Building 2 fails, building 3 cracks, and buildings 1, 4 and 5 stay undamaged. Phase 3 tunes these properly.
+- **Look:** the plaza is bare from the drone view, and the filler city's window grid repeats. Shadows and the glass tower's reflections have not been tuned on a real GPU.

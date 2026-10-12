@@ -3,7 +3,8 @@
 A photoreal earthquake lab: a city street with five buildings, built with Three.js (WebGPU), Rapier physics and Poly Haven assets (CC0). It replaces the Shake Table Lab prototype, which is kept in `prototype/`.
 
 - Plan and architecture: [docs/PLAN.md](docs/PLAN.md)
-- Phase 0 results and decisions: [docs/DECISIONS.md](docs/DECISIONS.md)
+- Results and decisions for each phase: [docs/DECISIONS.md](docs/DECISIONS.md)
+- Screenshots: `docs/phase0/`, `docs/phase1/`, `docs/phase2/`
 
 ## Run it
 
@@ -11,13 +12,19 @@ You need Node.js 22 or later.
 
 ```
 npm install
-npm run assets      # download the pinned Poly Haven assets (about 64 MB) into public/assets/polyhaven
+npm run assets      # download the pinned Poly Haven assets (about 140 MB) into public/assets/polyhaven
 npm run dev         # open the URL it prints
 ```
 
-Phase 1 is a vertical slice: one soft-story building, one quake, one collapse. Press **Start quake**, or open `/#test=1&run`.
+Phase 2 is the full street: five buildings that each sway at their own rhythm, street furniture, power lines, a filler city in the haze, and four times of day. Building 2 (apartments over shops) collapses in the quake. Press **Start quake**, or open `/#test=1&run`.
 
-Page options: `?sky=a` (urban HDRI backdrop) or `?sky=b` (pure sky, the default), `?post=0`, `?gl=1` (force WebGL2), `?csm=0`, `?stories=N`.
+Page options:
+- `?time=midday|clear|golden|overcast` picks the sky (also on screen).
+- `?post=0` turns off ambient occlusion and temporal antialiasing.
+- `?gl=1` forces WebGL2. `?csm=0` uses a single shadow map.
+- `?shadows=full` makes every facade cast its own shadow instead of the box proxies.
+- `?lod=0` turns off the far facade LODs. `?simplify=0` loads models at full detail.
+- `?filler=0` hides the filler city.
 
 ## Checks
 

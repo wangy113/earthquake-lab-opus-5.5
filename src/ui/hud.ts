@@ -12,6 +12,7 @@ export class Hud {
   onSlow = (_on: boolean) => {};
   onSound = (_on: boolean) => {};
   onCamera = (_name: string) => {};
+  onSky = (_name: string) => {};
   private slow = false;
   private sound = true;
   private lastNote = '';
@@ -26,10 +27,15 @@ export class Hud {
       $('#soundBtn').textContent = this.sound ? 'Sound on' : 'Sound off';
       this.onSound(this.sound);
     };
-    for (const b of document.querySelectorAll<HTMLButtonElement>('#segCam button')) {
+    this.segment('#segCam', v => this.onCamera(v));
+    this.segment('#segSky', v => this.onSky(v));
+  }
+
+  private segment(sel: string, fn: (v: string) => void) {
+    for (const b of document.querySelectorAll<HTMLButtonElement>(`${sel} button`)) {
       b.onclick = () => {
-        for (const o of document.querySelectorAll('#segCam button')) o.setAttribute('aria-pressed', String(o === b));
-        this.onCamera(b.dataset.v!);
+        for (const o of document.querySelectorAll(`${sel} button`)) o.setAttribute('aria-pressed', String(o === b));
+        fn(b.dataset.v!);
       };
     }
   }
@@ -43,7 +49,26 @@ export class Hud {
     if (on) { b.textContent = 'Shaking'; b.dataset.done = '1'; } else if (b.dataset.done === '1') b.textContent = 'Quake over';
   }
 
-  setPeriod(T: number) { $('#roT').textContent = `${T.toFixed(2)} s`; }
+  setPeriod(T: number) { $('#roT').textContent = `(period ${T.toFixed(2)} s)`; }
+
+  /** Mark a segmented control's choice without firing its callback (for URL options). */
+  select(sel: string, v: string) {
+    for (const o of document.querySelectorAll<HTMLButtonElement>(`${sel} button`)) o.setAttribute('aria-pressed', String(o.dataset.v === v));
+  }
+
+  neighbors(list: { label: string; period: number; roof: number; damage: number }[]) {
+    const wrap = $('#neighbors');
+    if (wrap.childElementCount !== list.length) {
+      wrap.innerHTML = list.map(() => '<div class="story"><span></span><span class="dr"></span><span class="dr"></span></div>').join('');
+    }
+    list.forEach((n, i) => {
+      const row = wrap.children[i];
+      row.children[0].textContent = n.label;
+      row.children[1].textContent = `${n.period.toFixed(1)} s`;
+      row.children[2].textContent = `${Math.round(n.roof * 100)} cm`;
+      (row.children[0] as HTMLElement).style.color = n.damage > 0.01 ? 'var(--amber)' : '';
+    });
+  }
 
   note(msg: string) {
     if (msg === this.lastNote) return;

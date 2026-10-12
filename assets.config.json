@@ -10,6 +10,21 @@
       "id": "wide_street_01",
       "res": "2k",
       "role": "sky: urban street (strategy A candidate)"
+    },
+    {
+      "id": "autumn_field_puresky",
+      "res": "2k",
+      "role": "sky: clear"
+    },
+    {
+      "id": "qwantani_sunset_puresky",
+      "res": "2k",
+      "role": "sky: golden hour (sun about 6 degrees up, orange)"
+    },
+    {
+      "id": "kloofendal_overcast_puresky",
+      "res": "2k",
+      "role": "sky: overcast"
     }
   ],
   "textures": [
@@ -37,6 +52,41 @@
       "id": "cracked_concrete_wall",
       "res": "1k",
       "role": "damage blend"
+    },
+    {
+      "id": "metal_plate",
+      "res": "1k",
+      "role": "tower mullions and spandrels"
+    },
+    {
+      "id": "patterned_paving",
+      "res": "1k",
+      "role": "plaza"
+    },
+    {
+      "id": "rough_concrete",
+      "res": "1k",
+      "role": "curbs and roofs"
+    },
+    {
+      "id": "concrete_wall_008",
+      "res": "1k",
+      "role": "filler city, tower core"
+    },
+    {
+      "id": "red_brick_03",
+      "res": "1k",
+      "role": "filler city"
+    },
+    {
+      "id": "rectangular_facade_tiles",
+      "res": "1k",
+      "role": "filler city"
+    },
+    {
+      "id": "grey_plaster",
+      "res": "1k",
+      "role": "filler city"
     }
   ],
   "models": [
@@ -106,12 +156,47 @@
       "role": "interior"
     },
     {
-      "id": "modular_street_seating",
+      "id": "planter_box_01",
       "res": "1k",
       "role": "street prop"
     },
     {
-      "id": "planter_box_01",
+      "id": "street_lamp_02",
+      "res": "1k",
+      "role": "street prop"
+    },
+    {
+      "id": "metal_trash_can",
+      "res": "1k",
+      "role": "street prop"
+    },
+    {
+      "id": "utility_box_01",
+      "res": "1k",
+      "role": "street prop"
+    },
+    {
+      "id": "power_box_01",
+      "res": "1k",
+      "role": "street prop"
+    },
+    {
+      "id": "water_manhole_cover",
+      "res": "1k",
+      "role": "street prop"
+    },
+    {
+      "id": "modular_electricity_poles",
+      "res": "1k",
+      "role": "power lines"
+    },
+    {
+      "id": "painted_wooden_bench",
+      "res": "1k",
+      "role": "plaza seating"
+    },
+    {
+      "id": "planter_box_02",
       "res": "1k",
       "role": "street prop"
     }

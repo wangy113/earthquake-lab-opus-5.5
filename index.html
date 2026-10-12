@@ -44,6 +44,8 @@
   .pill.ok { background: rgba(54,212,124,.18); color: var(--green); }
   .pill.crack { background: rgba(255,176,32,.2); color: var(--amber); }
   .pill.fail { background: rgba(255,77,61,.25); color: #ff8a7d; }
+  #neighbors { display: grid; gap: 5px; }
+  #neighbors .story { grid-template-columns: 1fr 56px 56px; }
   .dr { font-family: "JetBrains Mono", monospace; color: var(--muted); font-size: 13px; text-align: right; }
   #status { position: fixed; left: 16px; bottom: 12px; padding: 5px 10px; border-radius: 8px; background: rgba(0,0,0,.55); font: 13px "JetBrains Mono", monospace; color: var(--muted); }
   #credit { position: fixed; right: 16px; bottom: 12px; padding: 5px 10px; border-radius: 8px; background: rgba(0,0,0,.55); font-size: 13px; color: var(--muted); }
@@ -54,7 +56,7 @@
 </style>
 </head>
 <body>
-<header id="title" class="card"><b>Quake Street</b><small>Phase 1. One building, one quake.</small></header>
+<header id="title" class="card"><b>Quake Street</b><small>Phase 2. Five buildings, one street.</small></header>
 
 <section id="console" class="card" aria-label="Controls">
   <h2 class="k">Controls</h2>
@@ -66,7 +68,11 @@
   </div>
   <div class="lbl">Camera</div>
   <div class="seg" id="segCam" role="group" aria-label="Camera">
-    <button data-v="plaza" aria-pressed="true">Plaza</button><button data-v="corner" aria-pressed="false">Corner</button><button data-v="above" aria-pressed="false">Above</button>
+    <button data-v="plaza" aria-pressed="true">Plaza</button><button data-v="corner" aria-pressed="false">Corner</button><button data-v="street" aria-pressed="false">Street</button><button data-v="drone" aria-pressed="false">Drone</button>
+  </div>
+  <div class="lbl" style="margin-top:12px">Time of day</div>
+  <div class="seg" id="segSky" role="group" aria-label="Time of day">
+    <button data-v="midday" aria-pressed="true">Midday</button><button data-v="clear" aria-pressed="false">Clear</button><button data-v="golden" aria-pressed="false">Golden</button><button data-v="overcast" aria-pressed="false">Cloudy</button>
   </div>
 </section>
 
@@ -74,9 +80,11 @@
   <h2 class="k">Instruments</h2>
   <div class="ro"><span>Time into quake</span><b id="roTime">waiting</b></div>
   <div class="ro"><span>Ground shaking</span><b id="roG">0.00 g</b></div>
-  <div class="ro"><span>Natural period (model)</span><b id="roT">0.00 s</b></div>
   <div id="note" aria-live="polite"></div>
+  <div class="lbl" style="margin-top:8px">Building 2, apartments over shops <span id="roT"></span></div>
   <div id="stories"></div>
+  <div class="lbl" style="margin-top:12px">The rest of the street (period, roof movement)</div>
+  <div id="neighbors"></div>
 </section>
 
 <div id="status">Starting</div>

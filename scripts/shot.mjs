@@ -1,6 +1,6 @@
 // Takes a headless screenshot of the running dev server (npm run dev -- --port 5199).
 // Usage: node scripts/shot.mjs "<query and hash>" out.png [quakeSeconds] [camera]
-// With quakeSeconds, the quake is started and the simulation fast-forwarded that far first.
+// NOUI=1 hides the panels. With quakeSeconds, the quake is started and the simulation fast-forwarded that far first.
 import { chromium } from '@playwright/test';
 
 const [, , query = '', out = 'shot.png', quakeSeconds, camera] = process.argv;
@@ -10,6 +10,7 @@ page.on('console', m => { if (!['debug', 'info'].includes(m.type())) console.log
 page.on('pageerror', e => console.log(`pageerror: ${e.message}`));
 await page.goto(`http://localhost:5199/${query}`);
 await page.waitForFunction(() => window.__lab?.ready || window.__lab?.error, null, { timeout: 120_000 });
+if (process.env.NOUI) await page.addStyleTag({ content: '#console,#readouts,#title{display:none!important}' });
 if (camera) await page.evaluate(c => window.__lab.camera(c), camera);
 if (quakeSeconds) {
   await page.evaluate(s => { window.__lab.start(); window.__lab.fastForward(+s); }, quakeSeconds);

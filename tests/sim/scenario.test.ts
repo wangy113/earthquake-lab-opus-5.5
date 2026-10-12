@@ -4,6 +4,7 @@ import { Scenario, DT } from '../../src/sim/scenario';
 import { softStoryLayout } from '../../src/sim/building/softStory';
 import { makeQuake } from '../../src/sim/quake/synthetic';
 import { PHASE1_QUAKE } from '../../src/config/scenarios';
+import { streetBuildings } from '../../src/sim/street';
 
 beforeAll(async () => { await RAPIER.init(); });
 
@@ -45,5 +46,36 @@ describe('Phase 1 soft-story scenario', () => {
     const a = run(14).rep, b = run(14).rep;
     expect(a.failedAt).toBe(b.failedAt);
     expect(a.blockY).toBeCloseTo(b.blockY, 6);
+  });
+});
+
+describe('Phase 2 street', () => {
+  const street = () => new Scenario(RAPIER, softStoryLayout(), streetBuildings());
+
+  it('every neighbor hits its target period', () => {
+    const s = street();
+    for (const nb of s.neighbors) expect(nb.model.periods[0]).toBeCloseTo(nb.spec.structure.targetPeriod, 3);
+    s.free();
+  });
+
+  it('neighbors stay still at rest and sway in the quake', () => {
+    const s = street();
+    for (let i = 0; i < 600; i++) s.step();
+    for (const n of s.report().neighbors) expect(n.peakDrift).toBe(0);
+    s.startQuake(makeQuake(PHASE1_QUAKE));
+    for (let i = 0; i < 8 / DT; i++) s.step();
+    for (const n of s.report().neighbors) expect(n.peakDrift).toBeGreaterThan(1e-4);
+    s.free();
+  });
+
+  it('the soft story still collapses with the whole street around it', () => {
+    const s = street();
+    for (let i = 0; i < 60; i++) s.step();
+    s.startQuake(makeQuake(PHASE1_QUAKE));
+    for (let i = 0; i < 16 / DT; i++) s.step();
+    const rep = s.report();
+    expect(rep.failedAt).not.toBeNull();
+    expect(rep.blockDrop).toBeGreaterThan(1.5);
+    s.free();
   });
 });

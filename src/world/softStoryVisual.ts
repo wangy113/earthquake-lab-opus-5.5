@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Kit } from './kit';
+import { boxMesh } from './geometry';
 import { SLAB_T, STORY_H, type SoftStoryLayout } from '../sim/building/softStory';
 import { shearMaterial, storyUniforms, type StoryUniforms } from '../render/materials/shear';
 
@@ -48,16 +49,6 @@ function mergeByMaterial(src: THREE.Object3D, wrap: (m: THREE.Material) => THREE
   }
   return out;
 }
-
-const boxMesh = (w: number, h: number, d: number, mat: THREE.Material, uvTile = 1.5) => {
-  const g = new THREE.BoxGeometry(w, h, d);
-  // World-unit UVs (prototype tiledBox) so textures keep their real size on any box.
-  const uv = g.attributes.uv, dims = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]];
-  for (let f = 0; f < 6; f++) for (let i = 0; i < 4; i++) { const k = f * 4 + i; uv.setXY(k, uv.getX(k) * dims[f][0] / uvTile, uv.getY(k) * dims[f][1] / uvTile); }
-  const m = new THREE.Mesh(g, mat);
-  m.castShadow = m.receiveShadow = true;
-  return m;
-};
 
 export function buildSoftStoryVisual(L: SoftStoryLayout, kit: Kit, shutter: THREE.Object3D, mats: VisualMaterials): SoftStoryVisual {
   const root = new THREE.Group();

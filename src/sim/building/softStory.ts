@@ -44,7 +44,7 @@ export const PROP_SIZES: Record<string, [number, number, number]> = {
   Sofa_01: [1.571, 0.797, 0.658],
   steel_frame_shelves_01: [1.097, 2.141, 0.502],
   potted_plant_02: [0.701, 0.841, 0.657],
-  modular_street_seating: [4.34, 0.95, 0.77],
+  painted_wooden_bench: [1.17, 0.89, 0.49],
   planter_box_01: [0.913, 0.425, 0.414],
 };
 
@@ -85,10 +85,10 @@ export function softStoryLayout(): SoftStoryLayout {
     prop('plant:1', 'potted_plant_02', 10.8, -1.0, 1, 0, 15),
     prop('shelf:1', 'steel_frame_shelves_01', 1.4, -1.0, 1, Math.PI / 2, 40),
     prop('box:1', 'cardboard_box_01', 6.4, -1.2, 1, 0.3, 6),
-    // Plaza in front
-    prop('bench:p0', 'modular_street_seating', 4.0, 7.5, -1, 0, 260),
-    prop('planter:p0', 'planter_box_01', 10.0, 6.0, -1, 0.2, 90),
-    prop('planter:p1', 'planter_box_01', 11.2, 6.1, -1, -0.1, 90),
+    // Sidewalk in front
+    prop('bench:p0', 'painted_wooden_bench', 4.5, 2.9, -1, Math.PI, 35),
+    prop('planter:p0', 'planter_box_01', 9.8, 3.2, -1, 0.05, 90),
+    prop('planter:p1', 'planter_box_01', 11.0, 3.25, -1, -0.05, 90),
   ];
   props[3] = { ...props[3], pos: [7.25, -3.02], lift: 0.36 }; // second crate stacked on the first
 

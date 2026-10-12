@@ -1,6 +1,7 @@
-// Phase 1 vertical slice: one soft-story building on a street corner, one quake, one collapse.
-// URL options: ?sky=a (urban HDRI backdrop) or ?sky=b (pure sky, default), ?post=0, ?gl=1 (force
-// WebGL2), ?csm=0 (single shadow map). Deep link: #test=1&run starts the quake on load.
+// Phase 2: the full street. Five buildings sway in one quake, building 2 (soft story) can collapse.
+// URL options: ?time=midday|clear|golden|overcast, ?post=0, ?gl=1 (force WebGL2), ?csm=0 (single
+// shadow map), ?shadows=full (every facade casts its own shadow instead of proxies), ?filler=0.
+// Deep link: #test=1&run starts the quake on load.
 import * as THREE from 'three/webgpu';
 import { pass, mrt, output, velocity, normalView, builtinAOContext, screenUV } from 'three/tsl';
 import { ao } from 'three/addons/tsl/display/GTAONode.js';
@@ -8,12 +9,19 @@ import { traa } from 'three/addons/tsl/display/TRAANode.js';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import RAPIER from '@dimforge/rapier3d-simd-compat';
+import { MeshoptSimplifier } from 'meshoptimizer';
 import { loadManifest, pbrMaterial, loadModel, assetUrl } from './world/assets';
-import { loadHdri, sunDirection, groundedSky } from './render/lighting';
+import { mergeStatic, simplifyModel } from './world/geometry';
+import { loadHdri } from './render/lighting';
+import { analyzeSky, skyRotation, SKIES, type SkyName, type SkyAnalysis } from './render/sky';
 import { createRenderer } from './render/renderer';
 import { Kit } from './world/kit';
 import { buildSoftStoryVisual } from './world/softStoryVisual';
+import { buildBuilding, type BuildingVisual } from './world/buildingGen';
+import { buildStreet, pick } from './world/street';
+import { buildFiller } from './world/filler';
 import { softStoryLayout, STORY_H } from './sim/building/softStory';
+import { streetBuildings, STREET_X } from './sim/street';
 import { Scenario, type SimEvent } from './sim/scenario';
 import { makeQuake } from './sim/quake/synthetic';
 import { PHASE1_QUAKE } from './config/scenarios';
@@ -23,15 +31,18 @@ import { Hud } from './ui/hud';
 import { installLab } from './debug/lab';
 
 const params = new URLSearchParams(location.search);
-const skyMode = params.get('sky') === 'a' ? 'a' : 'b';
+const timeParam = params.get('time') ?? 'midday';
+const firstSky: SkyName = timeParam in SKIES ? timeParam as SkyName : 'midday';
+const shadowProxies = params.get('shadows') !== 'full';
 const usePost = params.get('post') !== '0';
 const useCsm = params.get('csm') !== '0';
 const hud = new Hud();
 
 const CAMERAS = {
-  plaza: { pos: new THREE.Vector3(9, 1.7, 21), target: new THREE.Vector3(6, 5.5, -4), fov: 55 },
-  corner: { pos: new THREE.Vector3(22, 3.2, 12), target: new THREE.Vector3(6, 4.5, -4), fov: 45 },
-  above: { pos: new THREE.Vector3(26, 17, 24), target: new THREE.Vector3(6, 4, -4), fov: 40 },
+  plaza: { pos: new THREE.Vector3(20, 1.7, 33), target: new THREE.Vector3(22, 11, -6), fov: 62 },
+  corner: { pos: new THREE.Vector3(19, 1.7, 15), target: new THREE.Vector3(6, 5, -4), fov: 50 },
+  street: { pos: new THREE.Vector3(-13, 1.7, 3.2), target: new THREE.Vector3(30, 7, -3), fov: 55 },
+  drone: { pos: new THREE.Vector3(STREET_X.center + 8, 38, 62), target: new THREE.Vector3(STREET_X.center, 14, -8), fov: 50 },
 };
 type CamName = keyof typeof CAMERAS;
 
@@ -47,12 +58,13 @@ async function boot() {
   document.body.prepend(renderer.domElement);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 800);
+  const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1500);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.maxPolarAngle = Math.PI * 0.495;
+  // Eye-level views look up at the buildings, so the camera may sit below its target.
+  controls.maxPolarAngle = Math.PI * 0.64;
   controls.minDistance = 2;
-  controls.maxDistance = 90;
+  controls.maxDistance = 220;
   const setCam = (name: CamName) => {
     const c = CAMERAS[name];
     camera.position.copy(c.pos);
@@ -64,74 +76,127 @@ async function boot() {
 
   hud.loading('Loading Poly Haven assets');
   const m = await loadManifest();
-  const skyId = skyMode === 'a' ? 'wide_street_01' : 'kloofendal_48d_partly_cloudy_puresky';
   const L = softStoryLayout();
-  const propModels = [...new Set(L.props.map(p => p.model))];
-  const [hdr, asphalt, pavement, slabMat, plaster, kitScene, shutter, lamp, hydrant, ...propScenes] = await Promise.all([
-    loadHdri(assetUrl(m.hdris[skyId].url)),
-    pbrMaterial(m, 'asphalt_02', 3),
-    pbrMaterial(m, 'concrete_pavement', 1.8),
-    pbrMaterial(m, 'concrete_floor_worn_001', 3),
-    pbrMaterial(m, 'plastered_wall_04', 2),
-    loadModel(m, 'modular_urban_apartments_facade'),
-    loadModel(m, 'rollershutter_door'),
-    loadModel(m, 'street_lamp_01'),
-    loadModel(m, 'fire_hydrant'),
-    ...propModels.map(id => loadModel(m, id)),
+  const others = streetBuildings();
+  const propModels = [...new Set([...L.props.map(p => p.model), 'metal_office_desk', 'Sofa_01', 'potted_plant_02', 'steel_frame_shelves_01', 'plastic_monobloc_chair_01', 'wooden_crate_01', 'cardboard_box_01'])];
+  const tex = (id: string, tile: number) => pbrMaterial(m, id, tile);
+  const model = (id: string) => loadModel(m, id);
+  const [hdr0, asphalt, pavement, plaza, curb, slabMat, plaster, metal, brickMat, fillerMats, aptScene, brickScene, shutter,
+    lamp, lamp2, hydrant, trash, utility, manhole, poles, bench, planter1, planter2, ...propScenes] = await Promise.all([
+    loadHdri(assetUrl(m.hdris[SKIES[firstSky].hdri].url)),
+    tex('asphalt_02', 3), tex('concrete_pavement', 1.8), tex('patterned_paving', 2.5), tex('rough_concrete', 1.5),
+    tex('concrete_floor_worn_001', 3), tex('plastered_wall_04', 2), tex('metal_plate', 1.5), tex('red_brick_03', 1.6),
+    Promise.all([['grey_plaster', 3], ['red_brick_03', 2], ['rectangular_facade_tiles', 3], ['concrete_wall_008', 3]].map(([id, t]) => tex(id as string, t as number))),
+    model('modular_urban_apartments_facade'), model('modular_factory_facade'), model('rollershutter_door'),
+    model('street_lamp_01'), model('street_lamp_02'), model('fire_hydrant'), model('metal_trash_can'), model('utility_box_01'),
+    model('water_manhole_cover'), model('modular_electricity_poles'), model('painted_wooden_bench'), model('planter_box_01'), model('planter_box_02'),
+    ...propModels.map(id => model(id)),
   ]);
   const propScene = new Map(propModels.map((id, i) => [id, propScenes[i]]));
+  // Strip millimeter bevels from every model (docs/DECISIONS.md, Phase 2 budget).
+  await MeshoptSimplifier.ready;
+  const simplifyMm = +(params.get('simplify') ?? 3) / 1000;
+  const simplified = { before: 0, after: 0 };
+  if (simplifyMm > 0) {
+    for (const o of [aptScene, brickScene, shutter, lamp, lamp2, hydrant, trash, utility, manhole, poles, bench, planter1, planter2, ...propScenes]) {
+      const r = simplifyModel(MeshoptSimplifier, o, simplifyMm);
+      simplified.before += r.before; simplified.after += r.after;
+    }
+  }
   hud.loading('Starting the physics engine');
   await RAPIER.init();
 
-  // Sky and light. The sun sits at the HDRI's brightest spot. The environment is turned down a
-  // little so the direct sun and its shadows carry the form (Phase 2 clamps the sun out of the
-  // HDRI properly).
-  scene.environment = hdr;
-  scene.environmentIntensity = 0.75;
-  if (skyMode === 'a') scene.add(groundedSky(hdr));
-  else { scene.background = hdr; scene.backgroundIntensity = 1; }
-  const sun = new THREE.DirectionalLight(0xfff1de, 4.2);
-  sun.position.copy(sunDirection(hdr)).multiplyScalar(90).add(new THREE.Vector3(6, 0, -4));
-  sun.target.position.set(6, 0, -4);
+  // Sky and light (render/sky.ts): the sun is measured from the HDRI and clamped out of the
+  // environment map, so it lights the scene once, through the directional light.
+  const sun = new THREE.DirectionalLight(0xffffff, 4);
+  const sunTarget = new THREE.Vector3(STREET_X.center, 0, -6);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.03;
   if (useCsm) {
-    const csm = new CSMShadowNode(sun, { cascades: 3, maxFar: 140, mode: 'practical' });
+    const csm = new CSMShadowNode(sun, { cascades: 3, maxFar: 220, mode: 'practical' });
     csm.fade = true;
     sun.shadow.shadowNode = csm;
   } else {
-    Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 200 });
+    Object.assign(sun.shadow.camera, { left: -60, right: 60, top: 60, bottom: -60, near: 1, far: 400 });
   }
   scene.add(sun, sun.target);
+  const fog = new THREE.FogExp2(0xb8c2cc, 0.0024);
+  scene.fog = fog;
+  const skies = new Map<SkyName, { hdr: THREE.DataTexture; a: SkyAnalysis }>();
+  let skyName = firstSky;
+  const applySky = async (name: SkyName) => {
+    skyName = name;
+    let entry = skies.get(name);
+    if (!entry) {
+      const hdr = name === firstSky && hdr0 ? hdr0 : await loadHdri(assetUrl(m.hdris[SKIES[name].hdri].url));
+      entry = { hdr, a: analyzeSky(hdr, SKIES[name].minElevation) };
+      skies.set(name, entry);
+    }
+    if (skyName !== name) return; // another choice arrived while this one loaded
+    const { hdr, a } = entry;
+    scene.background = hdr;
+    scene.environment = a.env;
+    scene.environmentIntensity = 1;
+    sun.color.copy(a.sunColor);
+    sun.intensity = a.sunIrradiance;
+    sun.castShadow = a.sunIrradiance > 0.2;
+    const rot = skyRotation(a.sunDir, SKIES[name].sunFrom);
+    scene.backgroundRotation.set(0, rot, 0);
+    scene.environmentRotation.set(0, rot, 0);
+    sun.position.copy(a.sunDir).applyAxisAngle(new THREE.Vector3(0, 1, 0), rot).multiplyScalar(160).add(sunTarget);
+    sun.target.position.copy(sunTarget);
+    fog.color.copy(a.horizon).multiplyScalar(1 / Math.max(a.horizon.r, a.horizon.g, a.horizon.b, 1e-3)).multiplyScalar(0.78);
+    // Light on the street is sun plus sky. Exposure follows it partway, so golden hour and
+    // overcast still look darker than noon, as they do to the eye.
+    const ground = a.sunIrradiance * Math.max(0.1, a.sunDir.y) + Math.PI * a.skyMean;
+    renderer.toneMappingExposure = 1.05 * SKIES[name].exposure * Math.pow(4.6 / ground, 0.7);
+  };
+  await applySky(firstSky);
 
   // Street: everything fixed to the ground moves with the ground body.
   const groundGroup = new THREE.Group();
   scene.add(groundGroup);
-  const plane = (w: number, d: number, mat: THREE.Material, x: number, y: number, z: number) => {
-    const geo = new THREE.PlaneGeometry(w, d);
-    geo.rotateX(-Math.PI / 2);
-    const uv = geo.attributes.uv;
-    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * w, uv.getY(i) * d);
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(x, y, z);
-    mesh.receiveShadow = true;
-    groundGroup.add(mesh);
-  };
-  plane(400, 400, pavement, 6, 0, 0);
-  plane(400, 7, asphalt, 6, 0.004, 13.5);
-  for (const [obj, x, z, ry] of [[lamp, -1.2, 3.2, Math.PI], [lamp, 13.2, 3.2, Math.PI], [hydrant, 15.0, 2.6, -0.4]] as const) {
-    const o = obj.clone(true);
-    o.position.set(x, 0, z);
-    o.rotation.y = ry;
-    groundGroup.add(o);
+  const street = buildStreet({ sidewalk: pavement, road: asphalt, plaza, curb, metal }, {
+    lamp1: lamp, lamp2,
+    hydrant: pick(hydrant, n => !n.includes('aged')),
+    trash: pick(trash, n => !n.includes('rust')),
+    utility, manhole,
+    poles: pick(poles, n => n.startsWith('preset_02_')),
+    bench, planter1, planter2,
+  }, others);
+  // Manhole covers lie flat: keep them out of the shadow maps.
+  street.traverse(o => { if (o.name.includes('manhole')) o.traverse(c => { c.castShadow = false; }); });
+  groundGroup.add(mergeStatic(street));
+
+  // Filler city around the street, fading into aerial haze.
+  let fillerTris = 0;
+  if (params.get('filler') !== '0') {
+    const avoid = [{ x0: STREET_X.min - 4, x1: STREET_X.max + 4, z0: -24, z1: 44 }];
+    // Filler textures are pale: tone them down so the street buildings stay the subject.
+    const tones = [0xb3ab9f, 0xa08a80, 0x8e959c, 0x9c958b];
+    (fillerMats as THREE.MeshStandardNodeMaterial[]).forEach((mt, i) => mt.color.setHex(tones[i]));
+    const filler = buildFiller(fillerMats as THREE.MeshStandardNodeMaterial[], avoid);
+    scene.add(filler.root);
+    fillerTris = filler.triangles;
   }
 
   // The building.
-  const kit = new Kit(kitScene);
-  const vis = buildSoftStoryVisual(L, kit, shutter, { plaster, slab: slabMat, column: slabMat });
+  const aptKit = new Kit(aptScene), brickKit = new Kit(brickScene);
+  const vis = buildSoftStoryVisual(L, aptKit, shutter, { plaster, slab: slabMat, column: slabMat });
   scene.add(vis.root);
+
+  // The other four buildings.
+  hud.loading('Building the street');
+  const lodOn = params.get('lod') !== '0';
+  const neighborVis: BuildingVisual[] = others.map(b => buildBuilding(b, {
+    apt: aptKit, brick: brickKit,
+    mats: { plaster, slab: slabMat, concrete: curb, metal, brick: brickMat },
+    models: propScene, shadowProxies,
+    lod: lodOn ? { simplifier: MeshoptSimplifier, near: +(params.get('lodNear') ?? 0), far: +(params.get('lodFar') ?? 0.04), farFrom: 70 } : undefined,
+  }));
+  for (const v of neighborVis) scene.add(v.root);
 
   // Furniture and plaza props, centered on their colliders.
   const synced = new Map<string, THREE.Object3D>();
@@ -160,7 +225,7 @@ async function boot() {
   const sound = new Sound();
 
   // Simulation.
-  const sim = new Scenario(RAPIER, L);
+  const sim = new Scenario(RAPIER, L, others);
   for (let i = 0; i < 60; i++) sim.step(); // furniture settles before anyone looks
   let eventIndex = sim.events.length;
   let block: THREE.Group | null = null;
@@ -177,10 +242,12 @@ async function boot() {
 
   const handle = (e: SimEvent) => {
     switch (e.kind) {
-      case 'crack':
-        sound.crack(0.6);
-        hud.note(`${L.structure.stories[e.story].label} is cracking`);
+      case 'crack': {
+        sound.crack(e.building ? 0.35 : 0.6);
+        const nb = e.building ? others.find(o => o.id === e.building) : null;
+        hud.note(nb ? `${nb.label}: story ${e.story + 1} is cracking` : `${L.structure.stories[e.story].label} is cracking`);
         break;
+      }
       case 'fail':
         sound.crack(1);
         sound.impact(1, true);
@@ -233,6 +300,12 @@ async function boot() {
     }
     const g = sim.bodies.get('ground')!.body.translation();
     groundGroup.position.set(g.x, 0, g.z);
+    // Neighbors: floor offsets straight from their structure models.
+    for (let n = 0; n < sim.neighbors.length; n++) {
+      const { model: md } = sim.neighbors[n], arr = neighborVis[n].offsets.array as THREE.Vector3[];
+      arr[0].set(g.x, 0, g.z);
+      for (let i = 0; i < md.n; i++) arr[i + 1].set(g.x + md.ux[i], 0, g.z + md.uz[i]);
+    }
     // After a collapse the upper floors are one rigid block (attached in the 'collapse' event).
     if (block || sim.failedAt !== null) return;
     // Story skinning: each upper story shears between the floor below and the floor above.
@@ -273,10 +346,13 @@ async function boot() {
   hud.onSlow = on => { slow = on; sound.slow = on; };
   hud.onSound = on => { sound.init(); sound.setEnabled(on); };
   hud.onCamera = name => setCam(name as CamName);
+  hud.onSky = name => { applySky(name as SkyName).catch(err => console.error(err)); };
+  hud.select('#segSky', firstSky);
   hud.setPeriod(sim.building.periods[0]);
 
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const stats = { fps: 0, backend, sky: skyId, post: usePost };
+  const stats = { fps: 0, backend, get sky() { return skyName; }, post: usePost, shadowProxies, triangles: 0, drawCalls: 0, fillerTris, simplified, buildingTris: neighborVis.map(v => Math.round(v.triangles)), farTris: neighborVis.map(v => Math.round((v.root.userData as { farTriangles?: number }).farTriangles ?? 0)) };
+  renderer.info.autoReset = false;
   const shake = new THREE.Vector3();
   let frames = 0, fpsT = performance.now(), last = fpsT, uiT = 0;
   renderer.setAnimationLoop(() => {
@@ -291,6 +367,7 @@ async function boot() {
     dust.update(dt * (slow ? 0.25 : 1));
     sound.tick(sim.groundAccelG());
     controls.update();
+    if (camera.position.y < 0.6) camera.position.y = 0.6;
     // Camera shake on a tripod near the street: small, from the ground motion plus a kick on impact.
     shake.set(0, 0, 0);
     if (!reduceMotion) {
@@ -299,15 +376,21 @@ async function boot() {
     }
     kick *= 0.9;
     camera.position.add(shake);
+    renderer.info.reset();
     if (pipeline) pipeline.render(); else renderer.render(scene, camera);
     camera.position.sub(shake);
 
     frames++;
-    if (now - fpsT > 1000) { stats.fps = Math.round(frames * 1000 / (now - fpsT)); frames = 0; fpsT = now; }
+    if (now - fpsT > 1000) {
+      stats.fps = Math.round(frames * 1000 / (now - fpsT)); frames = 0; fpsT = now;
+      stats.triangles = renderer.info.render.triangles;
+      stats.drawCalls = renderer.info.render.drawCalls;
+    }
     if (now - uiT > 100) {
       uiT = now;
       const rep = sim.report();
       hud.update({ t: rep.quakeTime, g: sim.groundAccelG(), stories: rep.stories, failedAt: rep.failedAt, fps: stats.fps, backend });
+      hud.neighbors(rep.neighbors.map((n, i) => ({ label: others[i].label, period: n.period, roof: n.roof, damage: n.damage })));
       if (sim.quake && rep.quakeTime > sim.quake.n * sim.quake.dt) hud.setRunning(false);
     }
   });
@@ -325,6 +408,7 @@ async function boot() {
       sync();
     },
     camera: (name: CamName) => setCam(name),
+    sky: (name: SkyName) => applySky(name),
     get storyHeight() { return STORY_H; },
   });
   hud.ready();

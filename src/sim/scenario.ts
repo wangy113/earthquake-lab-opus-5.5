@@ -3,6 +3,7 @@ import { ShearBuilding } from './structure/shearBuilding';
 import { sample, type QuakeRecord } from './quake/synthetic';
 import { rng } from './rng';
 import { SLAB_T, STORY_H, type SoftStoryLayout } from './building/softStory';
+import { CURB_H, ROAD, type StreetBuilding } from './street';
 
 type R = typeof RAPIER_NS;
 type Body = RAPIER_NS.RigidBody;
@@ -32,14 +33,17 @@ const CRUSH_TIME = 0.5;
 
 export type SimEvent =
   | { t: number; kind: 'quake-start' }
-  | { t: number; kind: 'crack'; story: number; pos: [number, number, number] }
+  | { t: number; kind: 'crack'; story: number; pos: [number, number, number]; building?: string }
   | { t: number; kind: 'fail'; story: number; pos: [number, number, number] }
   | { t: number; kind: 'collapse'; block: string; merged: string[] }
   | { t: number; kind: 'spawn'; id: string; from: string; half: [number, number, number]; role: 'column-half' | 'chunk' }
   | { t: number; kind: 'remove'; id: string }
   | { t: number; kind: 'impact'; p: number; heavy: boolean; pos: [number, number, number] };
 
-export interface SimBody { id: string; body: Body; kind: 'ground' | 'floor' | 'story1' | 'prop' | 'piece'; mass: number; pv: { x: number; y: number; z: number }; cool: number }
+export interface SimBody { id: string; body: Body; kind: 'ground' | 'floor' | 'story1' | 'prop' | 'piece' | 'neighbor'; mass: number; pv: { x: number; y: number; z: number }; cool: number }
+
+/** A building that only sways in Phase 2: its structure model plus one driven collider per story. */
+export interface Neighbor { spec: StreetBuilding; model: ShearBuilding; bodies: Body[] }
 
 export class Scenario {
   readonly world: RAPIER_NS.World;
@@ -55,8 +59,9 @@ export class Scenario {
   private crushed: { collider: RAPIER_NS.Collider; until: number }[] = [];
   private rand = rng(4242);
   private ox: number; private oz: number;
+  readonly neighbors: Neighbor[] = [];
 
-  constructor(private R: R, readonly layout: SoftStoryLayout) {
+  constructor(private R: R, readonly layout: SoftStoryLayout, street: StreetBuilding[] = []) {
     [this.ox, , this.oz] = layout.origin;
     const world = (this.world = new R.World({ x: 0, y: -G, z: 0 }));
     world.timestep = DT;
@@ -67,7 +72,11 @@ export class Scenario {
 
     // Street: one kinematic body for everything fixed to the ground.
     const ground = world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased());
-    world.createCollider(R.ColliderDesc.cuboid(80, 0.5, 80).setTranslation(this.ox + layout.W / 2, -0.5, this.oz).setFriction(0.8), ground);
+    // Road level everywhere, with the sidewalk and plaza raised by a curb.
+    const gx = this.ox + layout.W / 2;
+    world.createCollider(R.ColliderDesc.cuboid(120, 0.5, 120).setTranslation(gx, -0.5 - CURB_H, this.oz).setFriction(0.8), ground);
+    world.createCollider(R.ColliderDesc.cuboid(120, CURB_H / 2, 60).setTranslation(gx, -CURB_H / 2, ROAD.z0 - 60).setFriction(0.8), ground);
+    world.createCollider(R.ColliderDesc.cuboid(120, CURB_H / 2, 60).setTranslation(gx, -CURB_H / 2, ROAD.z1 + 60).setFriction(0.8), ground);
     this.add('ground', ground, 'ground', 1e9);
 
     // Floor slabs 1..N, each carrying the walls of the story above it.
@@ -83,6 +92,20 @@ export class Scenario {
       const b = world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(this.ox + p.center[0], p.center[1], this.oz + p.center[2]));
       world.createCollider(R.ColliderDesc.cuboid(...p.half).setMass(p.mass).setFriction(0.7), b);
       this.add(p.id, b, 'story1', p.mass);
+    }
+
+    // Neighbors: each story is one driven box, so debris and props collide with the buildings.
+    for (const spec of street) {
+      const model = new ShearBuilding(spec.structure);
+      model.onCrack = i => this.emit({ t: this.simT, kind: 'crack', story: i, building: spec.id, pos: this.neighborStoryCenter(spec, i) });
+      const bodies: Body[] = [];
+      for (let i = 0; i < spec.stories; i++) {
+        const b = world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(...this.neighborStoryCenter(spec, i)));
+        world.createCollider(R.ColliderDesc.cuboid(spec.W / 2 - 0.02, STORY_H / 2 - 0.01, spec.D / 2 - 0.02).setFriction(0.7), b);
+        this.add(`${spec.id}:story:${i + 1}`, b, 'neighbor', spec.structure.floorMass);
+        bodies.push(b);
+      }
+      this.neighbors.push({ spec, model, bodies });
     }
 
     // Furniture and plaza props: dynamic from the start.
@@ -108,6 +131,11 @@ export class Scenario {
   floorRest(i: number): [number, number, number] {
     const { W, D } = this.layout;
     return [this.ox + W / 2, i * STORY_H - SLAB_T / 2, this.oz - D / 2];
+  }
+
+  /** Rest center of a neighbor's story i (0 based). */
+  neighborStoryCenter(spec: StreetBuilding, i: number): [number, number, number] {
+    return [spec.origin[0] + spec.W / 2, spec.origin[1] + (i + 0.5) * STORY_H, spec.origin[2] - spec.D / 2];
   }
 
   storyCenter(i: number): [number, number, number] {
@@ -168,6 +196,10 @@ export class Scenario {
         const t = this.quakeTime + (s + 0.5) * dts;
         b.step(dts, sample(q, q.ax, t), sample(q, q.az, t));
       }
+      for (const nb of this.neighbors) for (let s = 0; s < SUB; s++) {
+        const t = this.quakeTime + (s + 0.5) * dts;
+        nb.model.step(dts, sample(q, q.ax, t), sample(q, q.az, t));
+      }
     }
     if (this.pendingFail >= 0) { this.collapse(this.pendingFail); this.pendingFail = -1; }
     this.poseKinematics(this.quakeTime + DT);
@@ -183,6 +215,14 @@ export class Scenario {
   private poseKinematics(t: number) {
     const g = this.groundOffset(t);
     this.bodies.get('ground')!.body.setNextKinematicTranslation({ x: g.x, y: 0, z: g.z });
+    for (const nb of this.neighbors) {
+      const m = nb.model;
+      for (let i = 0; i < nb.bodies.length; i++) {
+        const [x, y, z] = this.neighborStoryCenter(nb.spec, i);
+        const bx = i ? m.ux[i - 1] : 0, bz = i ? m.uz[i - 1] : 0;
+        nb.bodies[i].setNextKinematicTranslation({ x: x + g.x + (bx + m.ux[i]) / 2, y, z: z + g.z + (bz + m.uz[i]) / 2 });
+      }
+    }
     if (this.failedAt !== null) return;
     const b = this.building;
     for (let i = 1; i <= this.layout.stories; i++) {
@@ -297,7 +337,7 @@ export class Scenario {
   /** Sudden velocity changes become impact events for sound and dust (prototype detectImpacts). */
   private detectImpacts() {
     for (const o of this.bodies.values()) {
-      if (o.kind === 'ground' || o.kind === 'story1' || (o.kind === 'floor' && !o.body.isDynamic())) continue;
+      if (o.kind === 'ground' || o.kind === 'story1' || o.kind === 'neighbor' || (o.kind === 'floor' && !o.body.isDynamic())) continue;
       const v = o.body.linvel();
       const dv = Math.hypot(v.x - o.pv.x, v.y - o.pv.y, v.z - o.pv.z);
       o.pv = { x: v.x, y: v.y, z: v.z };
@@ -324,6 +364,14 @@ export class Scenario {
       blockY: blk.y,
       blockDrop: this.floorRest(1)[1] - blk.y,
       bodies: this.bodies.size,
+      neighbors: this.neighbors.map(nb => ({
+        id: nb.spec.id,
+        period: nb.model.periods[0],
+        roof: Math.hypot(nb.model.ux[nb.model.n - 1], nb.model.uz[nb.model.n - 1]),
+        roofDrift: Math.hypot(nb.model.ux[nb.model.n - 1], nb.model.uz[nb.model.n - 1]) / (nb.model.n * STORY_H),
+        peakDrift: Math.max(...nb.model.stories.map(st => st.peak)),
+        damage: Math.max(...nb.model.stories.map(st => st.damage)),
+      })),
     };
   }
 

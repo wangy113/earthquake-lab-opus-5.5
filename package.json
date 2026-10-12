@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@dimforge/rapier3d-simd-compat": "0.19.3",
+    "meshoptimizer": "0.25.0",
     "three": "0.186.1"
   },
   "devDependencies": {
