@@ -193,3 +193,37 @@ Plan item 3 asked for build-time LODs with `gltf-transform`. Load-time simplific
   - All five buildings shake with the same record at the same instant. The small delay of a wave crossing the street also comes in Phase 3.
 - **Tuning, for now:** the yield drifts are set so the Phase 1 quake matches the plan's "near quake on rock" outcome. Building 2 fails, building 3 cracks, and buildings 1, 4 and 5 stay undamaged. Phase 3 tunes these properly.
 - **Look:** the plaza is bare from the drone view, and the filler city's window grid repeats. Shadows and the glass tower's reflections have not been tuned on a real GPU.
+
+# Phase 3 notes (in progress)
+
+## Step 1: the ground-motion model (`src/sim/quake/groundMotion.ts`)
+
+Not wired into the page yet. The Phase 1 quake still drives the street, so nothing on screen changes. 6 new tests in `tests/sim/groundMotion.test.ts`.
+
+- **Inputs:** magnitude, distance and ground type (rock, firm or soft).
+- **Output:** a 3-component record (two horizontal, one vertical) with:
+  - P wave: mostly vertical, arriving first.
+  - S wave: the strong horizontal shaking, arriving after the S minus P delay (0.12 s per km).
+  - Surface waves: long-period rolling that grows with distance.
+- **How it is made:**
+  - Shaping: windowed noise, shaped by a source spectrum (corner frequency drops with magnitude), path losses (high frequencies fade with distance) and a Kanai-Tajimi site filter.
+  - Integration: displacement is integrated in the frequency domain with a 4th-order high-pass, then gated and tapered, so the ground ends at rest.
+  - Consistency: acceleration is the second difference of displacement, so the structure model and Rapier see the same motion.
+- **Bug found by the tests:** the first version integrated in time and fixed the drift with a taper. That taper made an acceleration spike at the record's end, and the peak-acceleration scaling locked onto the spike, which shrank the real shaking about 5 times on far quakes. The response spectrum showed it: short-period response came out below the peak acceleration, which cannot happen.
+
+Measured (seed 20261013):
+
+| Quake | Peak horizontal / vertical | S minus P | Sa 0.55 s | Sa 1.2 s |
+|---|---|---|---|---|
+| M6.5, 12 km, rock | 0.39 g / 0.13 g | 1.4 s | 0.71 g | 0.41 g |
+| M7.8, 120 km, soft | 0.16 g / 0.06 g | 14.3 s | 0.19 g | 0.62 g |
+
+That is the plan's core lesson in numbers. The near quake on rock hits the 0.55 s building hardest. The far quake on soft ground hits the 1.2 s mid-rise more than three times as hard as the 0.55 s building.
+
+- **Model values, not real-world claims:** wave speeds, the peak-acceleration rule, durations, site periods and the soil-softening rule are all tuned to give plausible shaking. Guided tests must not quote them as facts. The soft site period (1.3 s) was chosen to sit near building 3, not taken from a real basin.
+- **Next steps:**
+  - Wire the model into the page, with controls for size, distance and ground type.
+  - Add a seismograph with P and S picks.
+  - Delay each building by its distance along the street.
+  - Base isolation for the fire station.
+  - Bouc-Wen hysteresis.
