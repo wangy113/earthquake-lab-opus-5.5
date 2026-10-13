@@ -1,7 +1,8 @@
 // Phase 2: the full street. Five buildings sway in one quake, building 2 (soft story) can collapse.
 // URL options: ?time=midday|clear|golden|overcast, ?post=0, ?gl=1 (force WebGL2), ?csm=0 (single
 // shadow map), ?shadows=full (every facade casts its own shadow instead of proxies), ?filler=0.
-// Deep link: #test=1&run starts the quake on load.
+// Quake: ?quake=near|far (presets), or ?m=6.5&d=12&site=rock, plus ?seed=N. ?quake=phase1 plays
+// the Phase 1 stopgap record. Deep link: #test=1&run starts the quake on load.
 import * as THREE from 'three/webgpu';
 import { pass, mrt, output, velocity, normalView, builtinAOContext, screenUV } from 'three/tsl';
 import { ao } from 'three/addons/tsl/display/GTAONode.js';
@@ -24,7 +25,10 @@ import { softStoryLayout, STORY_H } from './sim/building/softStory';
 import { streetBuildings, STREET_X } from './sim/street';
 import { Scenario, type SimEvent } from './sim/scenario';
 import { makeQuake } from './sim/quake/synthetic';
-import { PHASE1_QUAKE } from './config/scenarios';
+import { PHASE1_QUAKE, QUAKE_PRESETS, type QuakePreset } from './config/scenarios';
+import { makeGroundMotion, type GroundMotion, type Site } from './sim/quake/groundMotion';
+import { Seismograph } from './ui/seismograph';
+import type { QuakeSettings } from './ui/hud';
 import { Dust } from './fx/dust';
 import { Sound } from './audio/sound';
 import { Hud } from './ui/hud';
@@ -233,10 +237,27 @@ async function boot() {
   const floorRest = (i: number) => new THREE.Vector3(...sim.floorRest(i));
   const pieceMat = slabMat;
 
+  // Quake settings: a preset, or magnitude, distance and ground from the URL or the controls.
+  const preset = (params.get('quake') ?? 'near') as QuakePreset | 'phase1';
+  const legacyQuake = preset === 'phase1';
+  const base: QuakeSettings = { ...QUAKE_PRESETS[preset in QUAKE_PRESETS ? preset as QuakePreset : 'near'] };
+  if (params.has('m')) base.magnitude = Math.min(8, Math.max(5.5, +params.get('m')!));
+  if (params.has('d')) base.distanceKm = Math.min(200, Math.max(5, +params.get('d')!));
+  if (['rock', 'firm', 'soft'].includes(params.get('site') ?? '')) base.site = params.get('site') as Site;
+  const seed = params.has('seed') ? +params.get('seed')! : undefined;
+  hud.setQuake(base);
+  hud.select('#segPreset', preset in QUAKE_PRESETS && !params.has('m') && !params.has('d') && !params.has('site') ? preset : '');
+  const seismo = new Seismograph(document.querySelector<HTMLCanvasElement>('#seis')!);
+  let waveNotes = { p: false, s: false };
+
   const startQuake = () => {
     if (sim.quake) return;
     sound.init();
-    sim.startQuake(makeQuake(PHASE1_QUAKE));
+    const rec = legacyQuake ? makeQuake(PHASE1_QUAKE) : makeGroundMotion({ ...hud.quake, seed });
+    sim.startQuake(rec);
+    seismo.setRecord(rec);
+    waveNotes = { p: false, s: false };
+    hud.setQuakeLocked(true);
     hud.setRunning(true);
   };
 
@@ -299,17 +320,17 @@ async function boot() {
       o.quaternion.set(r.x, r.y, r.z, r.w);
     }
     const g = sim.bodies.get('ground')!.body.translation();
-    groundGroup.position.set(g.x, 0, g.z);
+    groundGroup.position.set(g.x, g.y, g.z);
     // Neighbors: floor offsets straight from their structure models.
     for (let n = 0; n < sim.neighbors.length; n++) {
       const { model: md } = sim.neighbors[n], arr = neighborVis[n].offsets.array as THREE.Vector3[];
-      arr[0].set(g.x, 0, g.z);
-      for (let i = 0; i < md.n; i++) arr[i + 1].set(g.x + md.ux[i], 0, g.z + md.uz[i]);
+      arr[0].set(g.x, g.y, g.z);
+      for (let i = 0; i < md.n; i++) arr[i + 1].set(g.x + md.ux[i], g.y, g.z + md.uz[i]);
     }
     // After a collapse the upper floors are one rigid block (attached in the 'collapse' event).
     if (block || sim.failedAt !== null) return;
     // Story skinning: each upper story shears between the floor below and the floor above.
-    const off = (i: number) => i === 0 ? new THREE.Vector3(g.x, 0, g.z)
+    const off = (i: number) => i === 0 ? new THREE.Vector3(g.x, g.y, g.z)
       : new THREE.Vector3().copy(sim.bodies.get(`floor:${i}`)!.body.translation() as THREE.Vector3Like).sub(floorRest(i));
     for (let s = 2; s <= L.stories; s++) {
       const u = vis.stories[s - 2].u;
@@ -365,6 +386,7 @@ async function boot() {
       sync();
     }
     dust.update(dt * (slow ? 0.25 : 1));
+    seismo.draw(sim.quakeTime);
     sound.tick(sim.groundAccelG());
     controls.update();
     if (camera.position.y < 0.6) camera.position.y = 0.6;
@@ -390,6 +412,14 @@ async function boot() {
       uiT = now;
       const rep = sim.report();
       hud.update({ t: rep.quakeTime, g: sim.groundAccelG(), stories: rep.stories, failedAt: rep.failedAt, fps: stats.fps, backend });
+      const gm = sim.quake as GroundMotion | null;
+      if (gm?.tP !== undefined) {
+        if (!waveNotes.p && rep.quakeTime >= gm.tP) {
+          waveNotes.p = true;
+          hud.note(`P wave: a light up-and-down rattle. The S wave follows in ${(gm.tS - gm.tP).toFixed(1)} s`);
+        }
+        if (!waveNotes.s && rep.quakeTime >= gm.tS) { waveNotes.s = true; hud.note('S wave: the strong side-to-side shaking'); }
+      }
       hud.neighbors(rep.neighbors.map((n, i) => ({ label: others[i].label, period: n.period, roof: n.roof, damage: n.damage })));
       if (sim.quake && rep.quakeTime > sim.quake.n * sim.quake.dt) hud.setRunning(false);
     }
@@ -401,6 +431,9 @@ async function boot() {
     report: () => sim.report(),
     scene,
     start: startQuake,
+    /** Choose the quake before starting: { magnitude, distanceKm, site }. */
+    setQuake: (q: QuakeSettings) => hud.setQuake(q),
+    get quake() { const q = sim.quake as GroundMotion | null; return q ? { peakG: q.peakG, tP: q.tP, tS: q.tS, seconds: q.n * q.dt, opts: q.opts } : null; },
     /** Step the simulation directly (headless tests run far below real time). */
     fastForward(seconds: number) {
       for (let i = 0; i < Math.round(seconds * 120); i++) sim.step();

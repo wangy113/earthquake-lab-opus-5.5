@@ -5,6 +5,8 @@ import { softStoryLayout } from '../../src/sim/building/softStory';
 import { makeQuake } from '../../src/sim/quake/synthetic';
 import { PHASE1_QUAKE } from '../../src/config/scenarios';
 import { streetBuildings } from '../../src/sim/street';
+import { makeGroundMotion } from '../../src/sim/quake/groundMotion';
+import { QUAKE_PRESETS } from '../../src/config/scenarios';
 
 beforeAll(async () => { await RAPIER.init(); });
 
@@ -77,5 +79,34 @@ describe('Phase 2 street', () => {
     expect(rep.failedAt).not.toBeNull();
     expect(rep.blockDrop).toBeGreaterThan(1.5);
     s.free();
+  });
+});
+
+describe('Phase 3 signature quakes: the same street, opposite outcomes', () => {
+  const runPreset = (p: keyof typeof QUAKE_PRESETS) => {
+    const s = new Scenario(RAPIER, softStoryLayout(), streetBuildings());
+    for (let i = 0; i < 60; i++) s.step();
+    const q = makeGroundMotion({ ...QUAKE_PRESETS[p] });
+    s.startQuake(q);
+    for (let i = 0; i < q.n * q.dt / DT; i++) s.step();
+    const rep = s.report();
+    s.free();
+    return { rep, n: Object.fromEntries(rep.neighbors.map(nb => [nb.id, nb])) };
+  };
+
+  it('near quake on rock: the soft story fails, the tall buildings ride it out', () => {
+    const { rep, n } = runPreset('near');
+    expect(rep.failedAt).not.toBeNull();
+    expect(n.midrise.damage).toBeLessThan(0.5);
+    expect(n.tower.damage).toBeLessThan(0.1);
+    expect(n.station.damage).toBeLessThan(0.1);
+  });
+
+  it('far quake on soft ground: the soft story survives, the mid-rise is wrecked', () => {
+    const { rep, n } = runPreset('far');
+    expect(rep.failedAt).toBeNull();
+    expect(n.midrise.damage).toBeGreaterThan(0.9);
+    expect(n.brick.damage).toBeLessThan(0.1);
+    expect(n.station.damage).toBeLessThan(0.1);
   });
 });

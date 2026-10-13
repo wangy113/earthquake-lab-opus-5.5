@@ -1,4 +1,8 @@
 import type { StoryState } from '../sim/structure/shearBuilding';
+import { rockPga, siteAmp, type Site } from '../sim/quake/groundMotion';
+import { QUAKE_PRESETS, type QuakePreset } from '../config/scenarios';
+
+export interface QuakeSettings { magnitude: number; distanceKm: number; site: Site }
 
 /**
  * The on-screen controls and readouts. On-screen text follows the lab's writing rules:
@@ -13,6 +17,8 @@ export class Hud {
   onSound = (_on: boolean) => {};
   onCamera = (_name: string) => {};
   onSky = (_name: string) => {};
+  onQuake = (_q: QuakeSettings) => {};
+  quake: QuakeSettings = { magnitude: 6.5, distanceKm: 12, site: 'rock' };
   private slow = false;
   private sound = true;
   private lastNote = '';
@@ -29,6 +35,40 @@ export class Hud {
     };
     this.segment('#segCam', v => this.onCamera(v));
     this.segment('#segSky', v => this.onSky(v));
+    this.segment('#segSite', v => { this.quake.site = v as Site; this.quakeChanged(); });
+    this.segment('#segPreset', v => { this.setQuake({ ...QUAKE_PRESETS[v as QuakePreset] }); this.quakeChanged(); });
+    const inM = $<HTMLInputElement>('#inM'), inD = $<HTMLInputElement>('#inD');
+    inM.oninput = () => { this.quake.magnitude = +inM.value; this.quakeChanged(true); };
+    inD.oninput = () => { this.quake.distanceKm = +inD.value; this.quakeChanged(true); };
+  }
+
+  /** Show quake settings in the controls (without firing onQuake). */
+  setQuake(q: QuakeSettings) {
+    this.quake = { magnitude: q.magnitude, distanceKm: q.distanceKm, site: q.site };
+    $<HTMLInputElement>('#inM').value = String(q.magnitude);
+    $<HTMLInputElement>('#inD').value = String(q.distanceKm);
+    this.select('#segSite', q.site);
+    this.refreshQuakeLabels();
+  }
+
+  private quakeChanged(custom = false) {
+    if (custom) this.select('#segPreset', '');
+    this.refreshQuakeLabels();
+    this.onQuake({ ...this.quake });
+  }
+
+  private refreshQuakeLabels() {
+    const q = this.quake;
+    $('#outM').textContent = q.magnitude.toFixed(1);
+    $('#outD').textContent = `${q.distanceKm} km`;
+    const rock = rockPga(q.magnitude, q.distanceKm);
+    const pga = Math.min(1.2, rock * siteAmp(q.site, rock));
+    const sp = q.distanceKm * (1 / 3.5 - 1 / 6);
+    $('#quakeHint').textContent = `Peak shaking about ${pga.toFixed(2)} g. The S wave arrives ${sp.toFixed(1)} s after the P wave. Model values.`;
+  }
+
+  setQuakeLocked(on: boolean) {
+    for (const el of document.querySelectorAll<HTMLInputElement | HTMLButtonElement>('#segPreset button, #segSite button, #inM, #inD')) el.disabled = on;
   }
 
   private segment(sel: string, fn: (v: string) => void) {

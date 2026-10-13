@@ -4,7 +4,7 @@ A photoreal earthquake lab: a city street with five buildings, built with Three.
 
 - Plan and architecture: [docs/PLAN.md](docs/PLAN.md)
 - Results and decisions for each phase: [docs/DECISIONS.md](docs/DECISIONS.md)
-- Screenshots: `docs/phase0/`, `docs/phase1/`, `docs/phase2/`
+- Screenshots: `docs/phase0/` to `docs/phase3/`
 
 ## Run it
 
@@ -16,9 +16,10 @@ npm run assets      # download the pinned Poly Haven assets (about 140 MB) into 
 npm run dev         # open the URL it prints
 ```
 
-Phase 2 is the full street: five buildings that each sway at their own rhythm, street furniture, power lines, a filler city in the haze, and four times of day. Building 2 (apartments over shops) collapses in the quake. Press **Start quake**, or open `/#test=1&run`.
+Phase 3 (in progress) lets you pick the quake: a near or far preset, or size, distance and ground type, with a seismograph that marks the P and S waves. Phase 2 built the full street: five buildings that each sway at their own rhythm, street furniture, power lines, a filler city in the haze, and four times of day. Building 2 (apartments over shops) collapses in the quake. Press **Start quake**, or open `/#test=1&run`.
 
 Page options:
+- `?quake=near|far`, or `?m=6.5&d=12&site=rock` (also on screen), plus `?seed=N`. `?quake=phase1` plays the Phase 1 record.
 - `?time=midday|clear|golden|overcast` picks the sky (also on screen).
 - `?post=0` turns off ambient occlusion and temporal antialiasing.
 - `?gl=1` forces WebGL2. `?csm=0` uses a single shadow map.

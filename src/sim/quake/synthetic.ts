@@ -13,6 +13,7 @@ export interface QuakeRecord {
   n: number;
   x: Float64Array; z: Float64Array;   // displacement
   ax: Float64Array; az: Float64Array; // acceleration
+  y?: Float64Array; ay?: Float64Array; // vertical, when the record has it (Phase 3 ground motion)
   peakG: number;
 }
 

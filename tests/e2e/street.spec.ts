@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // The street in a real (headless) browser: assets load, all five buildings render, every
 // time-of-day preset loads, and the quake collapses the soft story the same way as the Node
-// tests while the neighbors sway. Headless Chromium renders with SwiftShader at about 1 fps,
+// tests while the neighbors sway. The default quake is the near preset (Phase 3). Headless Chromium renders with SwiftShader at about 1 fps,
 // so the test fast-forwards the simulation through window.__lab.
 test('the street loads, and the soft story collapses in the quake', async ({ page }, info) => {
   const errors: string[] = [];
@@ -24,14 +24,17 @@ test('the street loads, and the soft story collapses in the quake', async ({ pag
   const rep = await page.evaluate(() => {
     const lab = (window as any).__lab;
     lab.start();
-    lab.fastForward(12);
+    lab.fastForward(20);
     return lab.report();
   });
   console.log('report:', JSON.stringify({ failedAt: rep.failedAt, drop: rep.blockDrop, bodies: rep.bodies, neighbors: rep.neighbors }));
   expect(rep.failedAt).toBeGreaterThan(3);
-  expect(rep.failedAt).toBeLessThan(12);
+  expect(rep.failedAt).toBeLessThan(20);
   expect(rep.blockDrop).toBeGreaterThan(1.5);
   expect(rep.neighbors).toHaveLength(4);
+  const quake = await page.evaluate(() => (window as any).__lab.quake);
+  expect(quake.opts.site).toBe('rock');
+  expect(quake.tS).toBeGreaterThan(quake.tP);
   for (const n of rep.neighbors) expect(n.peakDrift).toBeGreaterThan(1e-4);
   await page.waitForTimeout(3000);
   await page.screenshot({ path: info.outputPath('after.png'), timeout: 120_000 });

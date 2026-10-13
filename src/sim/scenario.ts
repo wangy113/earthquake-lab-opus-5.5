@@ -43,7 +43,14 @@ export type SimEvent =
 export interface SimBody { id: string; body: Body; kind: 'ground' | 'floor' | 'story1' | 'prop' | 'piece' | 'neighbor'; mass: number; pv: { x: number; y: number; z: number }; cool: number }
 
 /** A building that only sways in Phase 2: its structure model plus one driven collider per story. */
-export interface Neighbor { spec: StreetBuilding; model: ShearBuilding; bodies: Body[] }
+export interface Neighbor { spec: StreetBuilding; model: ShearBuilding; bodies: Body[]; lag: number }
+
+/**
+ * Apparent speed of the shaking along the street (Model). Buildings farther along get the
+ * same motion a few hundredths of a second later, as if the wave crossed the street.
+ * The shared ground body moves without the delay.
+ */
+export const WAVE_SPEED_ALONG_STREET = 2000; // m/s
 
 export class Scenario {
   readonly world: RAPIER_NS.World;
@@ -105,7 +112,8 @@ export class Scenario {
         this.add(`${spec.id}:story:${i + 1}`, b, 'neighbor', spec.structure.floorMass);
         bodies.push(b);
       }
-      this.neighbors.push({ spec, model, bodies });
+      const lag = (spec.origin[0] + spec.W / 2 - (this.ox + layout.W / 2)) / WAVE_SPEED_ALONG_STREET;
+      this.neighbors.push({ spec, model, bodies, lag });
     }
 
     // Furniture and plaza props: dynamic from the start.
@@ -165,8 +173,16 @@ export class Scenario {
   get quakeTime() { return this.quake ? this.simT - this.quakeT0 : -1; }
 
   groundOffset(t = this.quakeTime) {
-    if (!this.quake || t < 0) return { x: 0, z: 0 };
-    return { x: sample(this.quake, this.quake.x, t), z: sample(this.quake, this.quake.z, t) };
+    const q = this.quake;
+    if (!q || t < 0) return { x: 0, y: 0, z: 0 };
+    return { x: sample(q, q.x, t), y: q.y ? sample(q, q.y, t) : 0, z: sample(q, q.z, t) };
+  }
+
+  /** Ground acceleration in all three directions (m/s^2), for the seismograph. */
+  groundAccel(t = this.quakeTime) {
+    const q = this.quake;
+    if (!q || t < 0) return { x: 0, y: 0, z: 0 };
+    return { x: sample(q, q.ax, t), y: q.ay ? sample(q, q.ay, t) : 0, z: sample(q, q.az, t) };
   }
 
   groundAccelG(t = this.quakeTime) {
@@ -197,7 +213,7 @@ export class Scenario {
         b.step(dts, sample(q, q.ax, t), sample(q, q.az, t));
       }
       for (const nb of this.neighbors) for (let s = 0; s < SUB; s++) {
-        const t = this.quakeTime + (s + 0.5) * dts;
+        const t = this.quakeTime + (s + 0.5) * dts - nb.lag;
         nb.model.step(dts, sample(q, q.ax, t), sample(q, q.az, t));
       }
     }
@@ -214,20 +230,20 @@ export class Scenario {
 
   private poseKinematics(t: number) {
     const g = this.groundOffset(t);
-    this.bodies.get('ground')!.body.setNextKinematicTranslation({ x: g.x, y: 0, z: g.z });
+    this.bodies.get('ground')!.body.setNextKinematicTranslation({ x: g.x, y: g.y, z: g.z });
     for (const nb of this.neighbors) {
       const m = nb.model;
       for (let i = 0; i < nb.bodies.length; i++) {
         const [x, y, z] = this.neighborStoryCenter(nb.spec, i);
         const bx = i ? m.ux[i - 1] : 0, bz = i ? m.uz[i - 1] : 0;
-        nb.bodies[i].setNextKinematicTranslation({ x: x + g.x + (bx + m.ux[i]) / 2, y, z: z + g.z + (bz + m.uz[i]) / 2 });
+        nb.bodies[i].setNextKinematicTranslation({ x: x + g.x + (bx + m.ux[i]) / 2, y: y + g.y, z: z + g.z + (bz + m.uz[i]) / 2 });
       }
     }
     if (this.failedAt !== null) return;
     const b = this.building;
     for (let i = 1; i <= this.layout.stories; i++) {
       const [x, y, z] = this.floorRest(i);
-      this.bodies.get(`floor:${i}`)!.body.setNextKinematicTranslation({ x: x + g.x + b.ux[i - 1], y, z: z + g.z + b.uz[i - 1] });
+      this.bodies.get(`floor:${i}`)!.body.setNextKinematicTranslation({ x: x + g.x + b.ux[i - 1], y: y + g.y, z: z + g.z + b.uz[i - 1] });
     }
     // Ground-story pieces lean with the story: shift by their height share, tilt by the drift.
     const ux = b.ux[0], uz = b.uz[0];
@@ -236,7 +252,7 @@ export class Scenario {
     for (const p of this.layout.groundStory) {
       const f = p.center[1] / STORY_H;
       const body = this.bodies.get(p.id)!.body;
-      body.setNextKinematicTranslation({ x: this.ox + p.center[0] + g.x + ux * f, y: p.center[1], z: this.oz + p.center[2] + g.z + uz * f });
+      body.setNextKinematicTranslation({ x: this.ox + p.center[0] + g.x + ux * f, y: p.center[1] + g.y, z: this.oz + p.center[2] + g.z + uz * f });
       body.setNextKinematicRotation(q);
     }
   }

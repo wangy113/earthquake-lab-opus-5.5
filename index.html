@@ -45,6 +45,12 @@
   .pill.crack { background: rgba(255,176,32,.2); color: var(--amber); }
   .pill.fail { background: rgba(255,77,61,.25); color: #ff8a7d; }
   #neighbors { display: grid; gap: 5px; }
+  #console { max-height: calc(100vh - 140px); overflow-y: auto; }
+  #readouts { max-height: calc(100vh - 60px); overflow-y: auto; }
+  .slider { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: baseline; margin-top: 10px; font-size: 14px; color: var(--muted); font-weight: 600; }
+  .slider output { font-family: "JetBrains Mono", monospace; color: var(--ink); font-size: 14px; }
+  .slider input { grid-column: 1 / -1; width: 100%; accent-color: #ffb020; }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.35; }
   #neighbors .story { grid-template-columns: 1fr 56px 56px; }
   .dr { font-family: "JetBrains Mono", monospace; color: var(--muted); font-size: 13px; text-align: right; }
   #status { position: fixed; left: 16px; bottom: 12px; padding: 5px 10px; border-radius: 8px; background: rgba(0,0,0,.55); font: 13px "JetBrains Mono", monospace; color: var(--muted); }
@@ -56,7 +62,7 @@
 </style>
 </head>
 <body>
-<header id="title" class="card"><b>Quake Street</b><small>Phase 2. Five buildings, one street.</small></header>
+<header id="title" class="card"><b>Quake Street</b><small>Phase 3. Pick a quake, watch the waves arrive.</small></header>
 
 <section id="console" class="card" aria-label="Controls">
   <h2 class="k">Controls</h2>
@@ -66,7 +72,19 @@
     <button id="slowBtn" class="btn" aria-pressed="false">Slow-mo</button>
     <button id="soundBtn" class="btn" aria-pressed="true">Sound on</button>
   </div>
-  <div class="lbl">Camera</div>
+  <div class="lbl">Earthquake</div>
+  <div class="seg" id="segPreset" role="group" aria-label="Earthquake preset">
+    <button data-v="near" aria-pressed="true">Near quake</button><button data-v="far" aria-pressed="false">Far quake</button>
+  </div>
+  <label class="slider"><span>Size (magnitude)</span><output id="outM">6.5</output>
+    <input id="inM" type="range" min="5.5" max="8" step="0.1" value="6.5" /></label>
+  <label class="slider"><span>Distance to the fault</span><output id="outD">12 km</output>
+    <input id="inD" type="range" min="5" max="200" step="1" value="12" /></label>
+  <div class="seg" id="segSite" role="group" aria-label="Ground under the street" style="margin-top:6px">
+    <button data-v="rock" aria-pressed="true">Rock</button><button data-v="firm" aria-pressed="false">Firm</button><button data-v="soft" aria-pressed="false">Soft</button>
+  </div>
+  <div id="quakeHint" class="hint"></div>
+  <div class="lbl" style="margin-top:12px">Camera</div>
   <div class="seg" id="segCam" role="group" aria-label="Camera">
     <button data-v="plaza" aria-pressed="true">Plaza</button><button data-v="corner" aria-pressed="false">Corner</button><button data-v="street" aria-pressed="false">Street</button><button data-v="drone" aria-pressed="false">Drone</button>
   </div>
@@ -80,6 +98,7 @@
   <h2 class="k">Instruments</h2>
   <div class="ro"><span>Time into quake</span><b id="roTime">waiting</b></div>
   <div class="ro"><span>Ground shaking</span><b id="roG">0.00 g</b></div>
+  <canvas id="seis" width="262" height="96" aria-label="Seismograph: east-west, north-south and up-down ground shaking" role="img" style="display:block;margin-top:8px;border-radius:8px"></canvas>
   <div id="note" aria-live="polite"></div>
   <div class="lbl" style="margin-top:8px">Building 2, apartments over shops <span id="roT"></span></div>
   <div id="stories"></div>

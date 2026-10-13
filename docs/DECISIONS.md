@@ -221,9 +221,32 @@ Measured (seed 20261013):
 That is the plan's core lesson in numbers. The near quake on rock hits the 0.55 s building hardest. The far quake on soft ground hits the 1.2 s mid-rise more than three times as hard as the 0.55 s building.
 
 - **Model values, not real-world claims:** wave speeds, the peak-acceleration rule, durations, site periods and the soil-softening rule are all tuned to give plausible shaking. Guided tests must not quote them as facts. The soft site period (1.3 s) was chosen to sit near building 3, not taken from a real basin.
+## Step 2: the model drives the page
+
+Screenshots: `docs/phase3/`.
+
+- **Controls:**
+  - Two presets, Near quake and Far quake.
+  - Sliders for size (magnitude 5.5 to 8) and distance (5 to 200 km), and ground type (rock, firm or soft).
+  - A hint line gives the expected peak shaking and the S minus P delay, labeled as model values.
+  - The same choices work from the URL: `?quake=near|far`, or `?m=`, `?d=`, `?site=`, plus `?seed=`.
+  - `?quake=phase1` still plays the old stopgap record.
+- **Seismograph:** east-west, north-south and up-down traces over the last 20 s. A P and an S line mark each wave once it reaches the street. Notes announce each arrival, with the S minus P delay.
+- **Vertical shaking:** the ground and every floor and story collider now move up and down too. The structure model is still horizontal only. Real buildings are very stiff vertically, so they move with the ground.
+- **Wave crossing:** each neighbor gets the shaking a little later, by its distance along the street at an apparent 2 km/s (Model). That is at most 0.03 s, so it has no visible effect yet. It is in place for longer streets and for pounding.
+- **Default quake:** the page now starts with the near preset instead of the Phase 1 record. The Phase 1 unit tests keep the old record, so their numbers are unchanged.
+
+Signature outcomes, with the street's own building models. These are now unit tests:
+
+| Quake | Building 2 | Mid-rise | Tower | Brick and station |
+|---|---|---|---|---|
+| Near, M6.5, 12 km, rock | fails, about 10 to 13 s in, across 3 seeds | light damage at most | undamaged | undamaged |
+| Far, M7.8, 120 km, soft | survives | fully damaged (cannot fall until Phase 4) | sometimes damaged | undamaged |
+
+The browser run with the default seed: building 2 fails 10.3 s into the record (the first 2 s are quiet lead), and the block drops 2.5 m.
+
 - **Next steps:**
-  - Wire the model into the page, with controls for size, distance and ground type.
-  - Add a seismograph with P and S picks.
-  - Delay each building by its distance along the street.
-  - Base isolation for the fire station.
-  - Bouc-Wen hysteresis.
+  - Base isolation and the moat for the fire station.
+  - Bouc-Wen hysteresis in place of the damage-lite springs.
+  - A pluck test.
+  - Showing each building's period on its own label in the scene.
