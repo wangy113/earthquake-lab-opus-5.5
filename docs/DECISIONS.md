@@ -245,8 +245,34 @@ Signature outcomes, with the street's own building models. These are now unit te
 
 The browser run with the default seed: building 2 fails 10.3 s into the record (the first 2 s are quiet lead), and the block drops 2.5 m.
 
+## Step 3: base isolation for the fire station
+
+`src/sim/structure/shearBuilding.ts` takes an optional `isolation` spec. Tests are in `tests/sim/isolation.test.ts` (4 tests).
+
+- **The model:** the building stands on a base slab (one floor's mass) carried by bearings.
+  - Bearings: stiff at first, soft once they yield, like lead-rubber bearings. The post-yield stiffness sets the isolated period to 2.5 s.
+  - Yield force: 6% of the weight, with a 10-to-1 stiffness ratio.
+  - Damping: 10% of critical on the isolation mode.
+  - Moat: the base can travel 40 cm in any direction before it meets a stiff, damped moat wall. Each contact is an event, with a sound, a puff of dust and a note.
+- **Damping only on bending:** the superstructure's mass-proportional damping now acts on motion relative to the base, so it does not damp the slow swing of the isolators.
+- **Display:** the instruments show the isolated period (2.5 s). The fixed-base period (0.4 s) is kept as `fixedPeriods` and is what gets tuned. The station's label reads "Fire station, isolated". The whole building slides over its moat plates in the scene.
+- **Comparison:** `streetBuildings({ isolated: false })` gives the fixed-base station.
+
+Measured (seeds 1 to 3, fixed base against isolated):
+
+| Quake | Story drift | Roof acceleration | Base travel | Moat |
+|---|---|---|---|---|
+| Near, rock | 0.5% against 0.1% | 1.1 to 1.25 g against 0.27 to 0.30 g | 9 to 13 cm | not reached |
+| Far, soft | 0.11% against 0.10 to 0.12% | 0.20 g against 0.22 to 0.25 g | 14 to 19 cm | not reached |
+| M7, 15 km, soft | (not run fixed) | 5 to 6 g peaks from the impacts | 41 cm | hit 5 and 13 times |
+
+What this shows:
+- **Near quake:** isolation cuts the shaking felt inside by about 4 times, which is the point of it.
+- **Far quake on soft ground:** isolation helps nothing and is slightly worse. That shaking is long-period, close to the isolators' own rhythm, which is a real limitation of isolation on soft soil. It is a good teaching point, so it stays.
+- **Strong quake on soft ground:** the base runs out of moat, and each impact sends a sharp jolt up the building, with some story damage. That is the case for leaving a wide moat. The plan's lineup says the station "may hit its moat on soft ground", and this matches.
+- **All values are Model values,** including the moat gap and the bearing properties.
+
 - **Next steps:**
-  - Base isolation and the moat for the fire station.
   - Bouc-Wen hysteresis in place of the damage-lite springs.
   - A pluck test.
   - Showing each building's period on its own label in the scene.

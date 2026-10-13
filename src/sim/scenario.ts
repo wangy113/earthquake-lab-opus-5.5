@@ -38,7 +38,8 @@ export type SimEvent =
   | { t: number; kind: 'collapse'; block: string; merged: string[] }
   | { t: number; kind: 'spawn'; id: string; from: string; half: [number, number, number]; role: 'column-half' | 'chunk' }
   | { t: number; kind: 'remove'; id: string }
-  | { t: number; kind: 'impact'; p: number; heavy: boolean; pos: [number, number, number] };
+  | { t: number; kind: 'impact'; p: number; heavy: boolean; pos: [number, number, number] }
+  | { t: number; kind: 'moat'; building: string; speed: number; pos: [number, number, number] };
 
 export interface SimBody { id: string; body: Body; kind: 'ground' | 'floor' | 'story1' | 'prop' | 'piece' | 'neighbor'; mass: number; pv: { x: number; y: number; z: number }; cool: number }
 
@@ -105,6 +106,10 @@ export class Scenario {
     for (const spec of street) {
       const model = new ShearBuilding(spec.structure);
       model.onCrack = i => this.emit({ t: this.simT, kind: 'crack', story: i, building: spec.id, pos: this.neighborStoryCenter(spec, i) });
+      model.onMoat = speed => {
+        const g = this.groundOffset(), [x, , z] = this.neighborStoryCenter(spec, 0);
+        this.emit({ t: this.simT, kind: 'moat', building: spec.id, speed, pos: [x + g.x + model.bx, 0.3, z + g.z + model.bz] });
+      };
       const bodies: Body[] = [];
       for (let i = 0; i < spec.stories; i++) {
         const b = world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(...this.neighborStoryCenter(spec, i)));
@@ -235,7 +240,7 @@ export class Scenario {
       const m = nb.model;
       for (let i = 0; i < nb.bodies.length; i++) {
         const [x, y, z] = this.neighborStoryCenter(nb.spec, i);
-        const bx = i ? m.ux[i - 1] : 0, bz = i ? m.uz[i - 1] : 0;
+        const bx = i ? m.ux[i - 1] : m.bx, bz = i ? m.uz[i - 1] : m.bz;
         nb.bodies[i].setNextKinematicTranslation({ x: x + g.x + (bx + m.ux[i]) / 2, y: y + g.y, z: z + g.z + (bz + m.uz[i]) / 2 });
       }
     }
@@ -387,6 +392,10 @@ export class Scenario {
         roofDrift: Math.hypot(nb.model.ux[nb.model.n - 1], nb.model.uz[nb.model.n - 1]) / (nb.model.n * STORY_H),
         peakDrift: Math.max(...nb.model.stories.map(st => st.peak)),
         damage: Math.max(...nb.model.stories.map(st => st.damage)),
+        isolated: !!nb.spec.structure.isolation,
+        base: Math.hypot(nb.model.bx, nb.model.bz),
+        peakBase: nb.model.peakBase,
+        moatHits: nb.model.moatHits,
       })),
     };
   }

@@ -46,6 +46,7 @@ const CAMERAS = {
   plaza: { pos: new THREE.Vector3(20, 1.7, 33), target: new THREE.Vector3(22, 11, -6), fov: 62 },
   corner: { pos: new THREE.Vector3(19, 1.7, 15), target: new THREE.Vector3(6, 5, -4), fov: 50 },
   street: { pos: new THREE.Vector3(-13, 1.7, 3.2), target: new THREE.Vector3(30, 7, -3), fov: 55 },
+  station: { pos: new THREE.Vector3(70, 1.7, 7), target: new THREE.Vector3(60, 2.5, -3), fov: 50 }, // lab only, no button yet
   drone: { pos: new THREE.Vector3(STREET_X.center + 8, 38, 62), target: new THREE.Vector3(STREET_X.center, 14, -8), fov: 50 },
 };
 type CamName = keyof typeof CAMERAS;
@@ -290,6 +291,13 @@ async function boot() {
         synced.set(e.block, block);
         break;
       }
+      case 'moat': {
+        const nb = others.find(o => o.id === e.building);
+        sound.impact(Math.min(1, e.speed / 0.6), e.speed > 0.3);
+        dust.puff(e.pos[0], 0.2, e.pos[2], 10, 0.8, 3);
+        hud.note(`${nb?.label ?? 'Building'} hit the edge of its moat at ${(e.speed * 100).toFixed(0)} cm per second`);
+        break;
+      }
       case 'remove':
         synced.get(e.id)?.removeFromParent();
         synced.delete(e.id);
@@ -324,7 +332,7 @@ async function boot() {
     // Neighbors: floor offsets straight from their structure models.
     for (let n = 0; n < sim.neighbors.length; n++) {
       const { model: md } = sim.neighbors[n], arr = neighborVis[n].offsets.array as THREE.Vector3[];
-      arr[0].set(g.x, g.y, g.z);
+      arr[0].set(g.x + md.bx, g.y, g.z + md.bz); // the isolated base slides, a fixed one is 0
       for (let i = 0; i < md.n; i++) arr[i + 1].set(g.x + md.ux[i], g.y, g.z + md.uz[i]);
     }
     // After a collapse the upper floors are one rigid block (attached in the 'collapse' event).
@@ -420,7 +428,7 @@ async function boot() {
         }
         if (!waveNotes.s && rep.quakeTime >= gm.tS) { waveNotes.s = true; hud.note('S wave: the strong side-to-side shaking'); }
       }
-      hud.neighbors(rep.neighbors.map((n, i) => ({ label: others[i].label, period: n.period, roof: n.roof, damage: n.damage })));
+      hud.neighbors(rep.neighbors.map((n, i) => ({ label: n.isolated ? `${others[i].label}, isolated` : others[i].label, period: n.period, roof: n.roof, damage: n.damage })));
       if (sim.quake && rep.quakeTime > sim.quake.n * sim.quake.dt) hud.setRunning(false);
     }
   });

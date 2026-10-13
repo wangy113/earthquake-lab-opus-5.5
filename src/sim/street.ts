@@ -61,14 +61,17 @@ function building(num: number, id: string, label: string, kind: BuildingKind, x:
 
 /**
  * The four buildings besides the soft story. Periods follow the lineup table and are tuned
- * properly in Phase 3. The fire station is fixed-base until Phase 3 adds its isolators.
+ * properly in Phase 3. `isolated: false` puts the fire station on a fixed base, for comparison.
  */
-export function streetBuildings(): StreetBuilding[] {
+export function streetBuildings(opts: { isolated?: boolean } = {}): StreetBuilding[] {
+  const station = building(5, 'station', 'Fire station', 'station', 55, 4, 4, 4, 1.1, 0.4, 0.007, 0.03, 0.3);
+  // The fire station sits on isolators inside a moat (lineup table, building 5). Model values.
+  if (opts.isolated !== false) station.structure.isolation = { period: 2.5, strength: 0.06, stiffRatio: 10, zeta: 0.1, moatGap: 0.4 };
   return [
     building(1, 'brick', 'Old brick store', 'brick', -16, 4, 3, 2, 1.3, 0.2, 0.002, 0.012, 0.2),
     building(3, 'midrise', 'Mid-rise apartments', 'midrise', 12.5, 5, 4, 12, 1.0, 1.2, 0.005, 0.03),
     building(4, 'tower', 'Glass office tower', 'tower', 32, 6, 6, 20, 0.9, 2.5, 0.012, 0.04),
-    building(5, 'station', 'Fire station', 'station', 55, 4, 4, 4, 1.1, 0.4, 0.007, 0.03, 0.3),
+    station,
   ];
 }
 

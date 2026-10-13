@@ -56,7 +56,7 @@ describe('Phase 2 street', () => {
 
   it('every neighbor hits its target period', () => {
     const s = street();
-    for (const nb of s.neighbors) expect(nb.model.periods[0]).toBeCloseTo(nb.spec.structure.targetPeriod, 3);
+    for (const nb of s.neighbors) expect(nb.model.fixedPeriods[0]).toBeCloseTo(nb.spec.structure.targetPeriod, 3); // fixed-base period
     s.free();
   });
 
