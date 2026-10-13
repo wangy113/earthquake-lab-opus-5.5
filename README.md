@@ -27,6 +27,14 @@ Page options:
 - `?lod=0` turns off the far facade LODs. `?simplify=0` loads models at full detail.
 - `?filler=0` hides the filler city.
 
+## Live page
+
+The latest build is published as a private claude.ai artifact: https://claude.ai/artifact/JJKbw2vLttUXpYw97MT4Wg (only its owner and people they share it with can open it). It is republished after each step.
+
+`npm run publish:prep -- <outDir>` builds the copy that gets published. The artifact host serves only standard web file types, so the script stores the `.hdr` and `.bin` files as base64 text, renames each `.gltf` to `.gltf.json`, and marks the manifest `packed`. `src/world/assets.ts` reads them back. It also splits the files into upload batches under the host's limits. After the first upload, an update usually only needs the new `index.html` and `assets/index-*.js`.
+
+The artifact cannot read the query string, so URL options such as `?time=` and `?quake=` work only in the dev server. The on-screen controls cover them.
+
 ## Checks
 
 ```

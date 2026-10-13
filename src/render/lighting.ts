@@ -1,13 +1,14 @@
 import * as THREE from 'three/webgpu';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
+import { binaryUrl } from '../world/assets';
 
 // Half float, not float: 32-bit float textures cannot be filtered on devices without
 // OES_texture_float_linear (and headless SwiftShader), which turned every lit surface black.
 const hdrLoader = new HDRLoader().setDataType(THREE.HalfFloatType);
 
 export async function loadHdri(url: string): Promise<THREE.DataTexture> {
-  const tex = await hdrLoader.loadAsync(url);
+  const tex = await hdrLoader.loadAsync(await binaryUrl(url));
   tex.mapping = THREE.EquirectangularReflectionMapping;
   return tex;
 }
